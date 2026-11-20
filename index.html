@@ -86,6 +86,18 @@ section.view{display:flex;flex-direction:column;gap:18px;padding-top:16px}
 .p-follow{background:var(--straw-soft);color:var(--straw-ink)}
 .p-buyer{background:var(--ok-soft);color:var(--ok)}
 .p-lost{background:var(--lost-soft);color:var(--lost)}
+.p-promised{background:#FDE7C7;color:#8A4B00}.p-booked{background:#DCEFF7;color:#0B5C7A}
+@media (prefers-color-scheme:dark){.p-promised{background:#3A2A12;color:#F5C27A}.p-booked{background:#12303A;color:#7DC9E6}}
+.stages button[aria-pressed="true"].s-promised{background:#C26A00;border-color:#C26A00;color:#fff}
+.stages button[aria-pressed="true"].s-booked{background:#0B7FA8;border-color:#0B7FA8;color:#fff}
+.tiles.t6{grid-template-columns:repeat(6,1fr)}@media (max-width:520px){.tiles.t6{grid-template-columns:repeat(3,1fr)}}
+.camp{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:8px}
+.camp-head{display:flex;gap:8px;align-items:center}.camp-head b{flex:1;min-width:0}
+.imp-list{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.imp-row{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:6px 8px}
+.imp-row input[type=text]{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:var(--surface);color:var(--ink)}
+.imp-row .ph{direction:ltr;font-size:13px;color:var(--muted,#777)}
+.top-acts{display:flex;gap:8px;flex-wrap:wrap}
 .p-debt{background:var(--late-soft);color:var(--late)}
 
 .rem{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-inline-start:4px solid var(--line)}
@@ -230,6 +242,7 @@ form.inline input{min-width:0}
     <button data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 003.4 0"/></svg>النهاردة<span class="badge" id="todayBadge" hidden></span></button>
     <button data-tab="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 010 7M21.5 20c-.5-2.6-1.9-4.3-3.8-5"/></svg>العملاء</button>
     <button data-tab="vaccines"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2l4 4M17 7l3-3M19 9l-8.5 8.5-4-4L15 5zM9 11l4 4M6.5 17.5L2 22"/></svg>التحصينات</button>
+    <button data-tab="campaigns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11v2a1 1 0 001 1h2l5 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>الحملات</button>
     <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>الإعدادات</button>
   </nav>
   <div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn"></div></div>
@@ -246,7 +259,9 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 document.documentElement.setAttribute('dir','rtl');document.documentElement.setAttribute('lang','ar');
 
 // ---------- constants ----------
-const STAGES=[{k:'lead',t:'محتمل'},{k:'follow',t:'محتاج متابعة'},{k:'buyer',t:'اشترى'},{k:'lost',t:'غير جاد'}];
+const STAGES=[{k:'lead',t:'محتمل'},{k:'follow',t:'محتاج متابعة'},{k:'promised',t:'وعد يحجز ⭐'},{k:'booked',t:'حجز'},{k:'buyer',t:'اشترى'},{k:'lost',t:'مستبعد'}];
+const LEGACY_STAGE={lead:'lead',follow:'follow',promised:'follow',booked:'follow',buyer:'buyer',lost:'lost'};
+const EXCLUDE_REASONS=['مش جاد','السعر','اشترى من مكان تاني','بعيد عننا','مش بيرد','مش وقته'];
 const STAGE_T=Object.fromEntries(STAGES.map(s=>[s.k,s.t]));
 const SOURCES=['إعلان فيسبوك/إنستجرام','واتساب مباشر','عميل قديم / ترشيح','زيارة للصيدلية','مصدر تاني'];
 const CHICKS=['كتكوت تسمين أبيض','كتكوت ساسو','بط مولر','بط مولر بلنشار مستورد','بط ستار'];
@@ -254,12 +269,13 @@ const DEFAULT_TEMPLATE=[{day:7,name:'هتشنر + IB'},{day:12,name:'جمبور�
 const DEFAULT_MSGS=[{title:'ترحيب بعميل جديد',text:'أهلاً يا {الاسم}، معاك {الصيدلية}. اتشرفنا بتواصلك، وأي استفسار عن الكتاكيت أو التحصينات احنا موجودين.'},{title:'وصلت كتاكيت جديدة',text:'أهلاً يا {الاسم}، وصلت دفعة كتاكيت جديدة في {الصيدلية}. لو حابب تحجز كلّمنا.'},{title:'تذكير بالحساب',text:'أهلاً يا {الاسم}، معاك {الصيدلية}. حبينا نفكّرك إن الباقي من الحساب {الباقي} جنيه. شكراً ليك.'}];
 const DEFAULT_VAC_MSG='أهلاً يا {الاسم}، بنفكّرك إن ميعاد تحصينة {التحصينة} للكتاكيت {الميعاد}{العمر}. لو محتاج التحصينة أو أي استفسار احنا موجودين. {الصيدلية}';
 const DEFAULT_FOLLOW_MSG='أهلاً يا {الاسم}، معاك {الصيدلية}. حبينا نطمّن عليك ونشوف لو محتاج حاجة للدورة الجاية.';
-const DEFAULT_SETTINGS={shopName:'مركز الحياة',template:DEFAULT_TEMPLATE,msgs:[],vacMsg:'',followMsg:''};
+const DEFAULT_SALE_MSG='أهلاً يا {الاسم}، معاك {الصيدلية}. الدورة قرّبت على البيع، ربنا يكرمك. حابب نحجزلك كتاكيت الدورة الجاية؟';
+const DEFAULT_SETTINGS={shopName:'مركز الحياة',template:DEFAULT_TEMPLATE,msgs:[],vacMsg:'',followMsg:'',saleMsg:'',sellDay:35};
 const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
 const ICON_WA='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.3 2.2 2.2 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>';
 
 // ---------- state ----------
-const S={customers:new Map(),cycles:new Map(),settings:{...DEFAULT_SETTINGS},mode:'loading',canWrite:true,me:null,
+const S={customers:new Map(),cycles:new Map(),campaigns:new Map(),settings:{...DEFAULT_SETTINGS},mode:'loading',canWrite:true,me:null,
   tab:'today',filter:'all',q:'',sheet:null,pendingSheet:false,profiles:{}};
 let sb=null;
 const $=s=>document.querySelector(s);
@@ -302,15 +318,17 @@ function fillMsg(t,cu,x){const due=custTotals(cu.id).due;x=x||{};return String(t
 function waBtn(phone,text,label='واتساب'){const l=waLink(phone,text);return l?`<a class="btn wa sm" href="${esc(l)}" target="_blank" rel="noopener">${ICON_WA}${label}</a>`:`<span class="meta">مفيش رقم</span>`}
 
 // ---------- persistence (Supabase) ----------
-const MAP={customers:{name:'name',phone:'phone',area:'area',source:'source',want:'want',stage:'stage',nextFollowUp:'next_follow_up',lastContact:'last_contact',notes:'notes'},
-  cycles:{customerId:'customer_id',startDate:'start_date',chickType:'chick_type',chickCount:'chick_count',chickPrice:'chick_price',paid:'paid',notes:'notes',vaccines:'vaccines',meds:'meds'}};
-const DATE_COLS=new Set(['next_follow_up','last_contact','start_date']);
-function toRow(col,id,o){if(col==='settings')return{id,data:{shopName:o.shopName,template:o.template,msgs:o.msgs,vacMsg:o.vacMsg||'',followMsg:o.followMsg||''}};const r={id};for(const[k,c]of Object.entries(MAP[col])){let v=o[k];if(v===undefined)continue;if(DATE_COLS.has(c)&&!v)v=null;r[c]=v}return r}
+const MAP={customers:{name:'name',phone:'phone',area:'area',source:'source',want:'want',stage:'stage',nextFollowUp:'next_follow_up',lastContact:'last_contact',notes:'notes',excludeReason:'exclude_reason',followNote:'follow_note',campaignId:'campaign_id'},
+  campaigns:{name:'name',platform:'platform',startDate:'start_date',endDate:'end_date',spend:'spend',messages:'messages',extras:'extras',notes:'notes'},
+  cycles:{customerId:'customer_id',startDate:'start_date',chickType:'chick_type',chickCount:'chick_count',chickPrice:'chick_price',paid:'paid',notes:'notes',vaccines:'vaccines',meds:'meds',sellDay:'sell_day',soldOn:'sold_on'}};
+const DATE_COLS=new Set(['next_follow_up','last_contact','start_date','end_date','sold_on']);
+function toRow(col,id,o){if(col==='settings'){const data={};Object.keys(o).forEach(k=>{if(k!=='id'&&o[k]!==undefined)data[k]=o[k]});return{id,data}}const r={id};for(const[k,c]of Object.entries(MAP[col])){let v=o[k];if(v===undefined)continue;if(DATE_COLS.has(c)&&!v)v=null;r[c]=v}
+  if(col==='customers'&&r.stage){r.pipeline=r.stage;r.stage=LEGACY_STAGE[r.stage]||'lead'}if(col==='customers'&&r.campaign_id==='')r.campaign_id=null;return r}
 function fromRow(col,r){const o={id:r.id};for(const[k,c]of Object.entries(MAP[col]))o[k]=r[c]??(DATE_COLS.has(c)?'':r[c]);
-  ['chickCount','chickPrice','paid'].forEach(k=>{if(k in o)o[k]=o[k]==null?0:Number(o[k])});
+  ['chickCount','chickPrice','paid','spend','messages'].forEach(k=>{if(k in o)o[k]=o[k]==null?0:Number(o[k])});if(col==='customers'&&r.pipeline)o.stage=r.pipeline;
   o.createdAt=r.created_at?Date.parse(r.created_at):0;o.updatedAt=r.updated_at?Date.parse(r.updated_at):0;o.createdBy=r.created_by||null;o.updatedBy=r.updated_by||null;return o}
 const queues={};
-function applyLocal(col,id,data){const m=col==='customers'?S.customers:col==='cycles'?S.cycles:null;if(m){if(data)m.set(id,{...data,id});else m.delete(id)}else if(col==='settings'&&data){S.settings={...DEFAULT_SETTINGS,...data}}}
+function applyLocal(col,id,data){const m=col==='customers'?S.customers:col==='cycles'?S.cycles:col==='campaigns'?S.campaigns:null;if(m){if(data)m.set(id,{...data,id});else m.delete(id)}else if(col==='settings'&&data){S.settings={...DEFAULT_SETTINGS,...data}}}
 function save(col,id,data){
   const body={...data};delete body.id;body.updatedAt=Date.now();if(S.me)body.updatedBy=S.me;
   applyLocal(col,id,body);renderAll();
@@ -339,15 +357,15 @@ function setSync(){const el=$('#sync'),tx=$('#syncTxt');el.className='sync '+(S.
   else if(S.mode==='error')b.innerHTML='<div class="banner err">مش قادر أوصل للبيانات دلوقتي. اتأكد من النت، والصفحة هتكمّل لوحدها أول ما الاتصال يرجع.</div>';
   else b.innerHTML='';
   $('#shopTitle').textContent='دفتر عملاء '+(S.settings.shopName||'الصيدلية')}
-function renderBadge(){const r=reminders();const n=r.vac.filter(x=>x.b!=='tom').length+r.fol.filter(x=>x.b!=='tom').length;const b=$('#todayBadge');b.hidden=!n;b.textContent=n}
+function renderBadge(){const r=reminders();const n=r.vac.filter(x=>x.b!=='tom').length+r.fol.filter(x=>x.b!=='tom').length+saleAlerts().filter(x=>x.d<=1).length;const b=$('#todayBadge');b.hidden=!n;b.textContent=n}
 function renderMain(){setSync();document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===S.tab?'page':'false'));
   $('#fab').hidden=!(S.tab==='customers'||S.tab==='today');
   const m=$('#main');
-  if(S.tab==='today')m.innerHTML=viewToday();else if(S.tab==='customers')m.innerHTML=viewCustomers();else if(S.tab==='vaccines')m.innerHTML=viewVaccines();else m.innerHTML=viewSettings();
+  if(S.tab==='today')m.innerHTML=viewToday();else if(S.tab==='customers')m.innerHTML=viewCustomers();else if(S.tab==='vaccines')m.innerHTML=viewVaccines();else if(S.tab==='campaigns')m.innerHTML=viewCampaigns();else m.innerHTML=viewSettings();
   if(S.tab==='customers'){const i=$('#q');if(i&&S._qFocus){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}}
 
 // ---------- views ----------
-function counts(){const c={all:0,lead:0,follow:0,buyer:0,lost:0,debt:0};S.customers.forEach(cu=>{c.all++;c[cu.stage||'lead']++;if(custTotals(cu.id).due>0.5)c.debt++});return c}
+function counts(){const c={all:0,lead:0,follow:0,promised:0,booked:0,buyer:0,lost:0,debt:0};S.customers.forEach(cu=>{c.all++;c[cu.stage||'lead']++;if(custTotals(cu.id).due>0.5)c.debt++});return c}
 function debtTotal(){let s=0;S.customers.forEach(cu=>{const d=custTotals(cu.id).due;if(d>0)s+=d});return s}
 
 function viewToday(){const r=reminders(),c=counts();
@@ -361,33 +379,42 @@ function viewToday(){const r=reminders(),c=counts();
       <div class="acts">${waBtn(x.cu.phone,waVaccineText(x))}<button class="btn sm" data-act="vDone" data-cy="${esc(x.c.id)}" data-v="${esc(x.v.id)}">${ICON_CHECK}اتعملت</button></div></article>`}).join('')
     :`<div class="empty">مفيش تحصينات النهاردة ولا بكرة. افتح أي عميل واضغط "جدولة تحصينة"، أو من تبويب التحصينات.</div>`;
   const folHtml=fol.length?fol.map(x=>`<article class="rem ${x.b}">
-      <div class="rem-main" data-act="openCustomer" data-id="${esc(x.cu.id)}"><b>${esc(x.cu.name)}</b><span>${esc(STAGE_T[x.cu.stage]||'')}${x.cu.want?' · '+esc(x.cu.want):''}${x.cu.lastContact?' · آخر كلام '+esc(rel(x.cu.lastContact)):''}</span></div>
+      <div class="rem-main" data-act="openCustomer" data-id="${esc(x.cu.id)}"><b>${esc(x.cu.name)}</b><span>${esc(STAGE_T[x.cu.stage]||'')}${x.cu.want?' · '+esc(x.cu.want):''}${x.cu.lastContact?' · آخر كلام '+esc(rel(x.cu.lastContact)):''}${x.cu.followNote?'<br>📝 '+esc(x.cu.followNote):''}</span></div>
       <span class="pill ${lbl[x.b][1]}">${lbl[x.b][0]}</span>
       <div class="acts">${waBtn(x.cu.phone,waFollowText(x.cu))}<button class="btn sm" data-act="contacted" data-id="${esc(x.cu.id)}">كلّمته</button></div></article>`).join('')
     :`<div class="empty">مفيش مكالمات النهاردة ولا بكرة. افتح أي عميل واضغط "جدولة مكالمة" وهيظهر هنا في ميعاده.</div>`;
   return `<section class="view">
-    <div class="tiles">
+    <div class="tiles t6">
       <button class="tile" data-act="goFilter" data-f="lead"><b>${c.lead}</b><span>محتمل</span></button>
       <button class="tile" data-act="goFilter" data-f="follow"><b>${c.follow}</b><span>محتاج متابعة</span></button>
+      <button class="tile" data-act="goFilter" data-f="promised"><b>${c.promised}</b><span>وعد يحجز ⭐</span></button>
+      <button class="tile" data-act="goFilter" data-f="booked"><b>${c.booked}</b><span>حجز</span></button>
       <button class="tile" data-act="goFilter" data-f="buyer"><b>${c.buyer}</b><span>اشترى</span></button>
       <button class="tile money" data-act="goFilter" data-f="debt"><b>${fmt(debtTotal())}</b><span>فلوس برة (جنيه)</span></button>
     </div>
+    ${(()=>{const al=saleAlerts();return al.length?`<div class="group"><div class="h-row"><h2>دورات قرّبت تتباع</h2><span class="hint">كلّمهم على الدورة الجاية</span></div>${al.map(x=>`<article class="rem ${x.d<0?'late':'today'}">
+      <div class="rem-main" data-act="openCustomer" data-id="${esc(x.cu.id)}"><b>${esc(x.cu.name)}</b><span>البيع المتوقع ${esc(shortDate(x.sl))} (${esc(rel(x.sl))})${x.c.chickCount?' · '+fmt(num(x.c.chickCount))+' '+esc(x.c.chickType||'كتكوت'):''}</span></div>
+      <span class="pill ${x.d<0?'p-late':'p-today'}">الدورة الجاية</span>
+      <div class="acts">${waBtn(x.cu.phone,waSaleText(x.cu))}<button class="btn sm" data-act="cycleSold" data-id="${esc(x.c.id)}">اتباعت</button></div></article>`).join('')}</div>`:''})()}
     <div class="group"><div class="h-row"><h2>التحصينات</h2><span class="hint">${fmtDate(today())}</span></div>${vacHtml}</div>
     <div class="group"><div class="h-row"><h2>مكالمات المتابعة</h2><span class="hint">${fol.length} عميل</span></div>${folHtml}</div>
   </section>`}
 
 function viewCustomers(){const c=counts();const q=S.q.trim();
-  const fl=[['all','الكل'],['lead','محتمل'],['follow','محتاج متابعة'],['buyer','اشترى'],['lost','غير جاد'],['debt','عليهم فلوس']];
+  const fl=[['all','الكل'],['lead','محتمل'],['follow','محتاج متابعة'],['promised','وعد يحجز ⭐'],['booked','حجز'],['buyer','اشترى'],['lost','مستبعد'],['debt','عليهم فلوس']];
   let list=[...S.customers.values()];
   if(S.filter==='debt')list=list.filter(cu=>custTotals(cu.id).due>0.5);else if(S.filter!=='all')list=list.filter(cu=>(cu.stage||'lead')===S.filter);
+  if(S.campFilter)list=list.filter(cu=>cu.campaignId===S.campFilter);
   if(q)list=list.filter(cu=>[cu.name,cu.phone,cu.area,cu.want].join(' ').includes(q));
   list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   const rows=list.map(cu=>{const t=custTotals(cu.id);const st=cu.stage||'lead';
-    const meta=[cu.area,t.cycles?`${t.cycles} دورة · ${fmt(t.count)} كتكوت`:cu.want,st!=='lost'&&cu.nextFollowUp?'مكالمة '+rel(cu.nextFollowUp):''].filter(Boolean).join(' · ');
+    const meta=[cu.area,t.cycles?`${t.cycles} دورة · ${fmt(t.count)} كتكوت`:cu.want,cu.stage==='lost'&&cu.excludeReason?'السبب: '+cu.excludeReason:'',st!=='lost'&&cu.nextFollowUp?'مكالمة '+rel(cu.nextFollowUp):''].filter(Boolean).join(' · ');
     return `<button class="row" data-act="openCustomer" data-id="${esc(cu.id)}"><div class="who"><b>${esc(cu.name)}</b><span>${esc(meta)}</span></div>
       <div class="end"><span class="pill p-${st}">${STAGE_T[st]}</span>${t.due>0.5?`<span class="pill p-debt num">عليه ${fmt(t.due)}</span>`:''}</div></button>`}).join('');
   return `<section class="view">
+    <div class="top-acts"><button class="btn sm" data-act="openImport">📥 استيراد أرقام دفعة واحدة</button></div>
     <input class="search" id="q" type="search" placeholder="دوّر بالاسم أو الرقم أو المنطقة" value="${esc(S.q)}" autocomplete="off">
+    ${S.campFilter&&S.campaigns.get(S.campFilter)?`<div class="banner">عملاء حملة: <b>${esc(S.campaigns.get(S.campFilter).name)}</b> <button class="btn ghost sm" data-act="clearCampFilter">✕ كل العملاء</button></div>`:''}
     <div class="chips">${fl.map(([k,t])=>`<button class="chip" data-act="filter" data-f="${k}" aria-pressed="${S.filter===k}">${t}<span class="n">${c[k]}</span></button>`).join('')}</div>
     ${rows?`<div class="list">${rows}</div>`:`<div class="empty">${S.customers.size?'مفيش عملاء بالشكل ده.':'لسه مفيش عملاء. اضغط "+ عميل جديد" وضيف أول عميل كلّمك.'}</div>`}
   </section>`}
@@ -418,6 +445,8 @@ function viewSettings(){const tp=S.settings.template||[];
       <div class="vars"><span class="meta">تقدر تكتب:</span><code>{الاسم}</code><code>{الصيدلية}</code><code>{التحصينة}</code><code>{الميعاد}</code><code>{العمر}</code><code>{المنطقة}</code><code>{الباقي}</code></div>
       <form data-form="remMsgs" style="display:flex;flex-direction:column;gap:8px">
         <label class="f">💉 قالب تذكير التحصينة<textarea name="vacMsg" id="rm-vac" placeholder="${esc(DEFAULT_VAC_MSG)}">${esc(S.settings.vacMsg||'')}</textarea></label>
+        <label class="f">🐔 قالب الدورة الجاية (لما الدورة تقرب تتباع)<textarea name="saleMsg" id="rm-sale" placeholder="${esc(DEFAULT_SALE_MSG)}">${esc(S.settings.saleMsg||'')}</textarea></label>
+        <label class="f">البيع عادةً يوم كام من عمر الدورة<input name="sellDay" id="rm-sell" type="number" min="1" value="${esc(S.settings.sellDay||35)}"></label>
         <label class="f">📞 قالب متابعة العميل<textarea name="followMsg" id="rm-fol" placeholder="${esc(DEFAULT_FOLLOW_MSG)}">${esc(S.settings.followMsg||'')}</textarea></label>
         <div class="form-acts"><button class="btn primary sm">حفظ القوالب</button></div>
       </form></div>
@@ -441,7 +470,7 @@ function renderSheet(fromProfiles){const el=$('#sheet');if(!S.sheet){el.hidden=t
   const ae=document.activeElement;if(el.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)&&S.sheet.type==='customer'){S.pendingSheet=true;return}
   if(S.sheet.type!=='customer'&&el.hidden===false&&!fromProfiles&&S.sheet.rendered)return; // forms don't re-render on data
   el.hidden=false;S.pendingSheet=false;
-  const h=S.sheet.type==='customer'?sheetCustomer():S.sheet.type==='custForm'?sheetCustForm():S.sheet.type==='vacForm'?sheetVacForm():sheetCycleForm();
+  const h=S.sheet.type==='customer'?sheetCustomer():S.sheet.type==='custForm'?sheetCustForm():S.sheet.type==='vacForm'?sheetVacForm():S.sheet.type==='campForm'?sheetCampForm():S.sheet.type==='import'?sheetImport():sheetCycleForm();
   if(h===null){closeSheet();return}
   $('#sheetIn').innerHTML=h;S.sheet.rendered=true;document.body.style.overflow='hidden'}
 $('#sheet').addEventListener('focusout',()=>setTimeout(()=>{if(S.pendingSheet&&!$('#sheet').contains(document.activeElement))renderSheet(false)},0));
@@ -456,6 +485,8 @@ function sheetCustomer(){const cu=S.customers.get(S.sheet.id);if(!cu)return null
     </div>
     ${cu.phone&&(S.settings.msgs||[]).some(m=>m.text)?`<div><div class="meta" style="margin-bottom:6px">ابعتله رسالة جاهزة:</div><div class="msg-btns">${(S.settings.msgs||[]).filter(m=>m.text).map(m=>waBtn(cu.phone,fillMsg(m.text,cu),esc(m.title||'رسالة'))).join('')}</div></div>`:''}
     <div class="stages">${STAGES.map(s=>`<button class="s-${s.k}" aria-pressed="${st===s.k}" data-act="stage" data-id="${esc(cu.id)}" data-s="${s.k}">${s.t}</button>`).join('')}</div>
+    ${st==='lost'?`<form class="inline" data-form="exReason" data-id="${esc(cu.id)}"><label class="f w-name">سبب الاستبعاد<input name="reason" id="exr-${esc(cu.id)}" list="exr-list" value="${esc(cu.excludeReason||'')}" placeholder="ليه استبعدته؟"><datalist id="exr-list">${EXCLUDE_REASONS.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></label><button class="btn sm">حفظ</button></form>`:''}
+    ${S.campaigns.size?`<label class="f">جه من حملة<select id="cc-${esc(cu.id)}" data-act-change="custCampaign" data-id="${esc(cu.id)}"><option value="">—</option>${[...S.campaigns.values()].map(c=>`<option value="${esc(c.id)}" ${cu.campaignId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>`:''}
     <div class="meta">آخر تواصل: ${cu.lastContact?esc(shortDate(cu.lastContact))+' ('+esc(rel(cu.lastContact))+')':'—'} <button class="btn sm" data-act="contacted" data-id="${esc(cu.id)}">كلّمته النهاردة</button></div>
     ${cu.notes?`<div style="white-space:pre-wrap;font-size:14px">${esc(cu.notes)}</div>`:''}
     <div class="meta">${cu.createdBy?'ضافه: '+esc(who(cu.createdBy)):''}${cu.createdAt?' · '+esc(shortDate(iso(new Date(cu.createdAt)))):''}${cu.updatedBy&&cu.updatedBy!==cu.createdBy?' · آخر تعديل: '+esc(who(cu.updatedBy)):''}</div>
@@ -474,6 +505,93 @@ function sheetCustomer(){const cu=S.customers.get(S.sheet.id);if(!cu)return null
   ${cs.length?cs.slice().reverse().map((c,i)=>cycleCard(c,cs.length-i)).join(''):'<div class="empty">لسه مفيش دورات. لما العميل يشتري كتاكيت ضيف دورة، وسجّل فيها الأدوية والتحصينات.</div>'}
   <div style="display:flex;justify-content:flex-start"><button class="btn danger sm" data-act="delCustomer" data-id="${esc(cu.id)}">امسح العميل</button></div>`}
 
+function sellDayOf(c){return num(c.sellDay)||num(S.settings.sellDay)||35}
+function saleDate(c){return c.startDate?addDays(c.startDate,sellDayOf(c)-1):''}
+function saleAlerts(){const t=today();const out=[];S.cycles.forEach(c=>{const cu=S.customers.get(c.customerId);if(!cu||cu.stage==='lost'||c.soldOn)return;const sl=saleDate(c);if(!sl)return;const d=diffDays(t,sl);if(d<=5&&d>=-10)out.push({c,cu,sl,d})});return out.sort((a,b)=>a.d-b.d)}
+function waSaleText(cu){return fillMsg((S.settings.saleMsg||'').trim()||DEFAULT_SALE_MSG,cu).trim()}
+function campStats(cp){const custs=[...S.customers.values()].filter(c=>c.campaignId===cp.id);const extras=(cp.extras||[]).reduce((s,x)=>s+num(x.amount),0);const spend=num(cp.spend)+extras;
+  const st={custs:custs.length,promised:0,booked:0,buyers:0,lost:0,sales:0,chicks:0,spend,extras,msgs:num(cp.messages)};
+  custs.forEach(c=>{const t=custTotals(c.id);if(c.stage==='promised')st.promised++;if(c.stage==='booked')st.booked++;if(c.stage==='lost')st.lost++;if(c.stage==='buyer'||t.cycles)st.buyers++;st.sales+=t.total;st.chicks+=t.count});
+  st.perMsg=st.msgs?spend/st.msgs:0;st.perCust=st.custs?spend/st.custs:0;st.perBuyer=st.buyers?spend/st.buyers:0;return st}
+const fmt2=n=>n?(n<100?n.toFixed(1):fmt(n)):'—';
+function viewCampaigns(){const cps=[...S.campaigns.values()].sort((a,b)=>(b.startDate||'').localeCompare(a.startDate||'')||(b.createdAt||0)-(a.createdAt||0));
+  const all=cps.map(campStats);const T=all.reduce((a,x)=>({spend:a.spend+x.spend,msgs:a.msgs+x.msgs,custs:a.custs+x.custs,buyers:a.buyers+x.buyers,sales:a.sales+x.sales}),{spend:0,msgs:0,custs:0,buyers:0,sales:0});
+  const noCamp=[...S.customers.values()].filter(c=>!c.campaignId).length;
+  return `<section class="view">
+    <div class="h-row"><h2>الحملات الإعلانية</h2><button class="btn primary sm" data-act="newCampaign">+ حملة</button></div>
+    <div class="card"><h3>تقرير فيسبوك</h3><p class="meta" style="margin:0">من مدير الإعلانات: Reports ← Export ← CSV، وبعدين اختار الملف هنا (من الموبايل أو الكمبيوتر). هيحدّث المصاريف والرسايل لكل حملة بالاسم، ويضيف الحملات الجديدة.</p>
+      <label class="btn sm" style="align-self:flex-start;cursor:pointer">📄 استيراد ملف CSV<input type="file" id="metaCsv" accept=".csv,text/csv,.txt" hidden></label></div>
+    ${cps.length?`<div class="card"><h3>الإجمالي</h3><div class="kv">
+      <div><span>صرفت</span><b>${fmt(T.spend)}</b></div><div><span>رسايل</span><b>${fmt(T.msgs)}</b></div><div><span>عملاء من الحملات</span><b>${T.custs}</b></div>
+      <div><span>اشتروا</span><b>${T.buyers}</b></div><div><span>تكلفة المشتري</span><b>${T.buyers?fmt(T.spend/T.buyers):'—'}</b></div><div><span>مبيعاتهم</span><b>${fmt(T.sales)}</b></div></div>
+      ${noCamp?`<div class="meta">في ${noCamp} عميل مش مربوطين بحملة. افتح العميل واختار "جه من حملة".</div>`:''}</div>`:''}
+    ${cps.length?cps.map((cp,i)=>{const x=all[i];return `<div class="camp"><div class="camp-head"><b>${esc(cp.name)}</b><span class="meta">${esc([cp.platform,cp.startDate?shortDate(cp.startDate):'',cp.endDate?'← '+shortDate(cp.endDate):''].filter(Boolean).join(' '))}</span><button class="btn ghost sm" data-act="editCampaign" data-id="${esc(cp.id)}">تعديل</button></div>
+      <div class="kv"><div><span>صرفت</span><b>${fmt(x.spend)}</b></div><div><span>رسايل</span><b>${fmt(x.msgs)}</b></div><div><span>تكلفة الرسالة</span><b>${fmt2(x.perMsg)}</b></div>
+      <div><span>عملاء</span><b>${x.custs}</b></div><div><span>وعد/حجز</span><b>${x.promised}/${x.booked}</b></div><div><span>اشتروا</span><b>${x.buyers}</b></div>
+      <div><span>تكلفة العميل</span><b>${fmt2(x.perCust)}</b></div><div><span>تكلفة المشتري</span><b>${fmt2(x.perBuyer)}</b></div><div><span>مبيعاتهم</span><b>${fmt(x.sales)}</b></div></div>
+      ${x.custs?`<button class="btn ghost sm" style="align-self:flex-start" data-act="campCustomers" data-id="${esc(cp.id)}">شوف العملاء (${x.custs})</button>`:''}</div>`}).join(''):'<div class="empty">لسه مفيش حملات. اضغط "+ حملة" واكتب اللي صرفته، أو استورد تقرير فيسبوك.</div>'}
+  </section>`}
+function sheetCampForm(){const cp=S.sheet.id?S.campaigns.get(S.sheet.id):null;const v={...(cp||{platform:'فيسبوك',startDate:today(),extras:[]}),...(S.sheet.draft||{})};const ex=S.sheet.extras||v.extras||[];
+  return `<div class="sheet-top"><button class="btn ghost" data-act="close">→ رجوع</button><h2>${cp?'تعديل الحملة':'حملة جديدة'}</h2></div>
+  <form class="card" data-form="campaign" data-id="${esc(cp?.id||'')}">
+    <label class="f">اسم الحملة<input name="name" id="cp-name" required value="${esc(v.name||'')}" placeholder="مثال: إعلان كتاكيت نوفمبر"></label>
+    <div class="grid2">
+      <label class="f">المنصة<input name="platform" id="cp-plat" list="platList" value="${esc(v.platform||'')}"><datalist id="platList"><option value="فيسبوك"><option value="إنستجرام"><option value="فيسبوك + إنستجرام"><option value="تيك توك"></datalist></label>
+      <label class="f">صرفت على الإعلان (جنيه)<input name="spend" id="cp-spend" type="number" inputmode="decimal" min="0" value="${esc(v.spend??'')}"></label>
+      <label class="f">بدأت<input name="startDate" id="cp-start" type="date" value="${esc(v.startDate||'')}"></label>
+      <label class="f">خلصت<input name="endDate" id="cp-end" type="date" value="${esc(v.endDate||'')}"></label>
+      <label class="f">عدد الرسايل اللي جت<input name="messages" id="cp-msgs" type="number" inputmode="numeric" min="0" value="${esc(v.messages??'')}"></label>
+    </div>
+    <div class="sub-h"><span>مصاريف تانية للحملة (تصميم، شحن رصيد، مندوب…)</span></div>
+    ${ex.map((x,i)=>`<div class="tpl-row"><input class="n" name="en${i}" id="cp-en${i}" value="${esc(x.name||'')}" placeholder="البند"><input class="d num" name="ea${i}" id="cp-ea${i}" type="number" min="0" value="${esc(x.amount??'')}" placeholder="المبلغ"><button type="button" class="icon-btn" data-act="extraDel" data-i="${i}" aria-label="امسح">✕</button></div>`).join('')}
+    <button type="button" class="btn sm" style="align-self:flex-start" data-act="extraAdd">+ مصروف</button>
+    <label class="f">ملاحظات<textarea name="notes" id="cp-notes">${esc(v.notes||'')}</textarea></label>
+    <div class="form-acts"><button class="btn primary">${cp?'حفظ':'ضيف الحملة'}</button>${cp?`<button type="button" class="btn danger" data-act="delCampaign" data-id="${esc(cp.id)}">امسح الحملة</button>`:''}</div>
+  </form>`}
+function readExtras(){const f=document.querySelector('form[data-form="campaign"]');const out=[];if(!f)return out;const fd=new FormData(f);S.sheet.draft={name:fd.get('name'),platform:fd.get('platform'),spend:fd.get('spend'),startDate:fd.get('startDate'),endDate:fd.get('endDate'),messages:fd.get('messages'),notes:fd.get('notes')};for(let i=0;fd.has('en'+i);i++)out.push({name:fd.get('en'+i),amount:fd.get('ea'+i)});return out}
+// ---- CSV
+function parseCSV(text){text=text.replace(/^\uFEFF/,'');const first=text.split(/\r?\n/)[0]||'';const d=[',',';','\t'].map(c=>[c,first.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=ch}
+    else if(ch==='"')q=true;else if(ch===d){row.push(cell);cell=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell=''}else cell+=ch}
+  if(cell||row.length){row.push(cell);rows.push(row)}return rows.filter(r=>r.some(c=>String(c).trim()))}
+function importMetaCSV(text){const rows=parseCSV(text);if(rows.length<2){toast('الملف فاضي أو مش CSV');return}
+  const h=rows[0].map(x=>String(x).trim().toLowerCase());const find=(...res)=>{for(const re of res){const i=h.findIndex(x=>re.test(x));if(i>=0)return i}return -1};
+  const iName=find(/campaign name/,/اسم الحملة/,/ad set name/,/اسم مجموعة الإعلانات/,/ad name/,/اسم الإعلان/);
+  const iSpend=find(/amount spent/,/المبلغ المنفق/,/spent/,/المنفق/,/الإنفاق/);
+  const iMsg=find(/messaging conversations started/,/محادثات.*بد/,/conversations/,/المحادثات/,/^results$/,/^النتائج$/,/results/,/النتائج/);
+  const iStart=find(/reporting starts/,/بدء إعداد التقارير/,/بداية/,/starts/);const iEnd=find(/reporting ends/,/انتهاء إعداد التقارير/,/نهاية/,/ends/);
+  if(iName<0||iSpend<0){toast('مش لاقي عمود اسم الحملة أو المبلغ المنفق في الملف');return}
+  const nv=v=>num(String(v||'').replace(/[^\d.,٠-٩]/g,''));const dt=v=>{const m=String(v||'').match(/(\d{4})-(\d{2})-(\d{2})/);return m?m[0]:''};
+  const agg={};rows.slice(1).forEach(r=>{const name=String(r[iName]||'').trim();if(!name)return;const a=agg[name]||(agg[name]={spend:0,msgs:0,start:'',end:''});a.spend+=nv(r[iSpend]);if(iMsg>=0)a.msgs+=nv(r[iMsg]);
+    const s1=iStart>=0?dt(r[iStart]):'',e1=iEnd>=0?dt(r[iEnd]):'';if(s1&&(!a.start||s1<a.start))a.start=s1;if(e1&&(!a.end||e1>a.end))a.end=e1});
+  let up=0,add=0;Object.entries(agg).forEach(([name,a])=>{const ex=[...S.campaigns.values()].find(c=>c.name.trim().toLowerCase()===name.toLowerCase());
+    if(ex){save('campaigns',ex.id,{...ex,spend:Math.round(a.spend*100)/100,messages:a.msgs||ex.messages,startDate:a.start||ex.startDate,endDate:a.end||ex.endDate});up++}
+    else{save('campaigns',newId(),{name,platform:'فيسبوك',spend:Math.round(a.spend*100)/100,messages:a.msgs,startDate:a.start,endDate:a.end,extras:[],notes:'',createdAt:Date.now()});add++}});
+  toast(`اتحدّثت ${up} حملة واتضافت ${add}`)}
+// ---- bulk numbers import
+function normPhone(v){let d=String(v||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/\D/g,'');
+  if(d.startsWith('0020'))d=d.slice(4);else if(d.startsWith('20')&&d.length===12)d=d.slice(2);if(d.length===10&&d.startsWith('1'))d='0'+d;return /^01[0125]\d{8}$/.test(d)?d:''}
+function extractContacts(text){text=String(text||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x));const out=[];
+  if(/BEGIN:VCARD/i.test(text)){text.split(/BEGIN:VCARD/i).slice(1).forEach(b=>{const fn=(b.match(/^FN[^:]*:(.*)$/mi)||[])[1]||'';(b.match(/^TEL[^:]*:(.*)$/gmi)||[]).forEach(t=>{const ph=normPhone(t.split(':').slice(1).join(':'));if(ph)out.push({name:fn.trim(),phone:ph})})});return out}
+  const re=/(?:\+|00)?(?:20)?[\s\-.]*0?1[0125](?:[\s\-.]*\d){8}/g;
+  text.split(/\r?\n/).forEach(line=>{const ms=line.match(re)||[];ms.forEach(m=>{const ph=normPhone(m);if(!ph)return;let name=line.replace(m,' ').replace(/[,;\t|"]+/g,' ').replace(/[\[\]\d:\/\-–]+/g,' ').replace(/\s+/g,' ').trim();if(name.length>40)name='';out.push({name,phone:ph})})});return out}
+function buildImport(text){const have=new Set([...S.customers.values()].map(c=>normPhone(c.phone)).filter(Boolean));const seen=new Set();const list=[];let dup=0;
+  extractContacts(text).forEach(x=>{if(seen.has(x.phone))return;seen.add(x.phone);if(have.has(x.phone)){dup++;return}list.push({...x,on:true})});S.sheet={...S.sheet,list,dup,parsed:true};S.sheet.rendered=false;renderSheet(false)}
+function sheetImport(){const sh=S.sheet;const list=sh.list||[];
+  return `<div class="sheet-top"><button class="btn ghost" data-act="close">→ رجوع</button><h2>استيراد أرقام</h2></div>
+  <div class="card"><p class="meta" style="margin:0">الصق أي كلام فيه أرقام (من الواتساب، من إكسل، أو قايمة)، أو اختار ملف جهات اتصال (VCF) أو CSV. الأبلكيشن هيطلّع الأرقام المصرية بس، ويشيل المكرر واللي متسجلين عندك قبل كده.</p>
+    <textarea id="impText" style="min-height:110px;border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--surface);color:var(--ink)" placeholder="مثال:&#10;محمد علي 01012345678&#10;+20 111 234 5678">${esc(sh.text||'')}</textarea>
+    <div class="top-acts"><button class="btn primary sm" data-act="impParse">طلّع الأرقام</button><label class="btn sm" style="cursor:pointer">📇 ملف VCF أو CSV<input type="file" id="impFile" accept=".vcf,.csv,.txt,text/vcard,text/csv,text/plain" hidden></label></div></div>
+  ${sh.parsed?`<div class="card"><h3>لقيت ${list.length} رقم جديد</h3>${sh.dup?`<div class="meta">و${sh.dup} رقم متسجلين عندك قبل كده (اتشالوا).</div>`:''}
+    ${list.length?`<div class="imp-list">${list.map((x,i)=>`<label class="imp-row"><input type="checkbox" data-imp-on="${i}" ${x.on?'checked':''}><input type="text" data-imp-name="${i}" value="${esc(x.name)}" placeholder="الاسم (اختياري)"><span class="ph">${esc(x.phone)}</span></label>`).join('')}</div>
+    <div class="grid2">
+      <label class="f">المرحلة<select id="imp-stage">${STAGES.filter(s=>s.k!=='lost').map(s=>`<option value="${s.k}">${s.t}</option>`).join('')}</select></label>
+      <label class="f">جاي منين<select id="imp-src">${SOURCES.map(s=>`<option ${s==='واتساب مباشر'?'selected':''}>${esc(s)}</option>`).join('')}</select></label>
+      ${S.campaigns.size?`<label class="f">من حملة<select id="imp-camp"><option value="">—</option>${[...S.campaigns.values()].map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label>`:''}
+      <label class="f">أكلمهم إمتى<input type="date" id="imp-next" value="${esc(addDays(today(),1))}"></label>
+    </div>
+    <div class="form-acts"><button class="btn primary" data-act="impSave">ضيف المختارين</button></div>`:''}</div>`:''}`}
 function custVaccines(cid){const out=[];cyclesOf(cid).forEach(c=>(c.vaccines||[]).forEach(v=>out.push({c,v})));return out.sort((a,b)=>(a.v.date||'').localeCompare(b.v.date||''))}
 function vacNameList(){return [...new Set([...(S.settings.template||[]).map(x=>x.name),...[...S.cycles.values()].flatMap(c=>(c.vaccines||[]).map(v=>v.name))].filter(Boolean))]}
 function schedCard(cu){const id=esc(cu.id);const up=custVaccines(cu.id).filter(x=>!x.v.done);const hasTpl=(S.settings.template||[]).some(r=>r.name&&num(r.day)>0);
@@ -482,6 +600,7 @@ function schedCard(cu){const id=esc(cu.id);const up=custVaccines(cu.id).filter(x
     <div class="meta">${cu.nextFollowUp?'المكالمة الجاية: <b style="color:var(--ink)">'+esc(fmtDate(cu.nextFollowUp))+'</b> ('+esc(rel(cu.nextFollowUp))+')':'مفيش مكالمة متجدولة.'}</div>
     <div class="quick"><button class="btn sm" data-act="callIn" data-id="${id}" data-n="1">بكرة</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="3">بعد ٣ أيام</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="7">بعد أسبوع</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="14">بعد أسبوعين</button>${cu.nextFollowUp?`<button class="btn ghost sm" data-act="callClear" data-id="${id}">إلغاء</button>`:''}</div>
     <label class="f">أو اختار يوم<input type="date" id="nf-${id}" data-act-change="nextFollow" data-id="${id}" value="${esc(cu.nextFollowUp||'')}"></label>
+    <form class="inline" data-form="fnote" data-id="${id}"><label class="f w-name">ملاحظة للمكالمة (هتظهرلك في ميعادها)<input name="note" id="fn-${id}" value="${esc(cu.followNote||'')}" placeholder="مثال: هيأكد الحجز بعد ما يقبض"></label><button class="btn sm">حفظ</button></form>
     <div class="sub">💉 جدولة تحصينة</div>
     ${up.length?`<div class="lines">${up.map(x=>{const late=x.v.date&&x.v.date<today();return `<div class="line"><button class="check" aria-pressed="false" aria-label="اتعملت" data-act="vToggle" data-cy="${esc(x.c.id)}" data-v="${esc(x.v.id)}">${ICON_CHECK}</button><span class="grow">${esc(x.v.name)}</span><span class="meta num" style="${late?'color:var(--late)':''}">${esc(shortDate(x.v.date))} · ${esc(rel(x.v.date))}</span><button class="icon-btn" data-act="vDel" data-cy="${esc(x.c.id)}" data-v="${esc(x.v.id)}" aria-label="امسح">✕</button></div>`}).join('')}</div>`:'<div class="meta">مفيش تحصينات جاية للعميل ده.</div>'}
     <form class="inline" data-form="custVac" data-cid="${id}">
@@ -507,13 +626,14 @@ function cycleCard(c,n){const t=cycleTotals(c);const age=c.startDate?ageOn(c.sta
   const vacNames=[...new Set([...(S.settings.template||[]).map(x=>x.name)])];
   const medNames=[...new Set([...S.cycles.values()].flatMap(x=>(x.meds||[]).map(m=>m.name)).filter(Boolean))];
   return `<div class="cycle">
-  <div class="cycle-head"><b>دورة ${n}</b><span class="meta">${c.startDate?'استلام '+esc(shortDate(c.startDate)):''}${age&&age>0&&age<=60?' · عمرها النهاردة '+age+' يوم':''}</span><span class="grow"></span><button class="btn ghost sm" data-act="editCycle" data-id="${esc(c.id)}">تعديل</button></div>
+  <div class="cycle-head"><b>دورة ${n}</b>${c.soldOn?`<span class="pill p-buyer">اتباعت</span>`:''}<span class="meta">${c.startDate?'استلام '+esc(shortDate(c.startDate)):''}${age&&age>0&&age<=60?' · عمرها النهاردة '+age+' يوم':''}</span><span class="grow"></span><button class="btn ghost sm" data-act="editCycle" data-id="${esc(c.id)}">تعديل</button></div>
   <div class="cycle-body">
     <div class="kv">
       <div><span>${esc(c.chickType||'كتاكيت')}</span><b>${fmt(num(c.chickCount))} × ${fmt(num(c.chickPrice))}</b></div>
       <div><span>إجمالي الدورة</span><b>${fmt(t.total)}</b></div>
       <div><span>الباقي</span><b class="${t.due>0.5?'bad':''}">${fmt(t.due)}</b></div>
     </div>
+    ${(()=>{const sl=saleDate(c);return sl?`<div class="meta">🐔 البيع المتوقع: <b style="color:var(--ink)">${esc(fmtDate(sl))}</b> (يوم ${sellDayOf(c)}، ${esc(rel(sl))}) ${c.soldOn?'· اتباعت '+esc(shortDate(c.soldOn)):`<button class="btn sm" data-act="cycleSold" data-id="${esc(c.id)}">اتباعت ✓</button>`}</div>`:''})()}
     <form class="inline" data-form="paid" data-cy="${esc(c.id)}"><label class="f w-num">دفع كام لحد دلوقتي<input name="paid" id="paid-${esc(c.id)}" type="number" inputmode="decimal" min="0" value="${esc(c.paid??'')}"></label><button class="btn sm">حفظ</button></form>
 
     <div><div class="sub-h"><span>التحصينات</span>${c.startDate?`<button class="btn ghost sm" data-act="applyTpl" data-cy="${esc(c.id)}">+ الجدول المقترح</button>`:''}</div>
@@ -549,6 +669,7 @@ function sheetCustForm(){const cu=S.sheet.id?S.customers.get(S.sheet.id):null;co
       <label class="f">عاوز إيه<input name="want" id="cf-want" value="${esc(v.want||'')}" placeholder="مثال: 500 ساسو أول الشهر"></label>
       <label class="f">المرحلة<select name="stage" id="cf-stage">${STAGES.map(s=>`<option value="${s.k}" ${v.stage===s.k?'selected':''}>${s.t}</option>`).join('')}</select></label>
       <label class="f">المتابعة الجاية<input name="nextFollowUp" id="cf-next" type="date" value="${esc(v.nextFollowUp||'')}"></label>
+      ${S.campaigns.size?`<label class="f">جه من حملة<select name="campaignId" id="cf-camp"><option value="">—</option>${[...S.campaigns.values()].map(c=>`<option value="${esc(c.id)}" ${v.campaignId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>`:''}
     </div>
     <label class="f">ملاحظات<textarea name="notes" id="cf-notes">${esc(v.notes||'')}</textarea></label>
     <div class="form-acts"><button class="btn primary">${cu?'حفظ التعديل':'ضيف العميل'}</button></div>
@@ -563,6 +684,7 @@ function sheetCycleForm(){const c=S.sheet.id?S.cycles.get(S.sheet.id):null;const
       <label class="f">العدد<input name="chickCount" id="yf-count" type="number" inputmode="numeric" min="0" value="${esc(v.chickCount??'')}"></label>
       <label class="f">سعر الكتكوت (جنيه)<input name="chickPrice" id="yf-price" type="number" inputmode="decimal" min="0" step="0.25" value="${esc(v.chickPrice??'')}"></label>
       <label class="f">دفع كام<input name="paid" id="yf-paid" type="number" inputmode="decimal" min="0" value="${esc(v.paid??'')}"></label>
+      <label class="f">البيع المتوقع يوم كام من العمر<input name="sellDay" id="yf-sell" type="number" inputmode="numeric" min="1" value="${esc(v.sellDay||S.settings.sellDay||35)}"></label>
     </div>
     ${c?'':`<label class="checkline"><input type="checkbox" name="tpl" id="yf-tpl" checked> ضيف جدول التحصينات المقترح (تقدر تعدّله بعدين)</label>`}
     <label class="f">ملاحظات<textarea name="notes" id="yf-notes">${esc(v.notes||'')}</textarea></label>
@@ -579,6 +701,20 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   if(t.tagName==='A')return;
   if(a==='newCustomer')openSheet({type:'custForm'});
   else if(a==='newVac')openSheet({type:'vacForm'});
+  else if(a==='newCampaign')openSheet({type:'campForm'});
+  else if(a==='editCampaign')openSheet({type:'campForm',id:d.id});
+  else if(a==='extraAdd'){const ex=readExtras();ex.push({name:'',amount:''});S.sheet.extras=ex;S.sheet.rendered=false;renderSheet(false)}
+  else if(a==='extraDel'){const ex=readExtras();ex.splice(+d.i,1);S.sheet.extras=ex;S.sheet.rendered=false;renderSheet(false)}
+  else if(a==='delCampaign'){if(confirmTap(t,'dp'+d.id,'اضغط تاني للتأكيد')){S.customers.forEach(c=>{if(c.campaignId===d.id)save('customers',c.id,{...c,campaignId:''})});remove('campaigns',d.id);closeSheet();toast('اتمسحت الحملة')}}
+  else if(a==='campCustomers'){S.campFilter=d.id;S.filter='all';S.tab='customers';renderMain();window.scrollTo(0,0)}
+  else if(a==='clearCampFilter'){S.campFilter=null;renderMain()}
+  else if(a==='openImport')openSheet({type:'import'});
+  else if(a==='impParse'){const tx=$('#impText').value;S.sheet.text=tx;buildImport(tx)}
+  else if(a==='impSave'){const list=S.sheet.list||[];document.querySelectorAll('[data-imp-on]').forEach(cb=>{list[+cb.dataset.impOn].on=cb.checked});document.querySelectorAll('[data-imp-name]').forEach(inp=>{list[+inp.dataset.impName].name=inp.value.trim()});
+    const stage=$('#imp-stage').value,src=$('#imp-src').value,camp=$('#imp-camp')?$('#imp-camp').value:'',nx=$('#imp-next').value;let n=0;
+    list.filter(x=>x.on).forEach(x=>{save('customers',newId(),{name:x.name||('عميل واتساب '+x.phone.slice(-4)),phone:x.phone,area:'',source:src,want:'',stage,nextFollowUp:nx||'',notes:'',campaignId:camp,lastContact:today(),createdAt:Date.now(),createdBy:S.me||null});n++});
+    closeSheet();S.tab='customers';renderMain();toast('اتضاف '+n+' عميل')}
+  else if(a==='cycleSold'){const c=S.cycles.get(d.id);if(c){updCycle(d.id,x=>{x.soldOn=today()});const cu=S.customers.get(c.customerId);if(cu&&cu.stage!=='lost'){const nx=addDays(today(),10);save('customers',cu.id,{...cu,nextFollowUp:nx,followNote:'الدورة الجاية'});toast('اتسجّل البيع، واتجدولت مكالمة للدورة الجاية '+rel(nx))}else toast('اتسجّل البيع')}}
   else if(a==='callIn'){const cu=S.customers.get(d.id);if(cu){const nx=addDays(today(),+d.n);save('customers',cu.id,{...cu,nextFollowUp:nx});toast('اتجدولت مكالمة '+rel(nx))}}
   else if(a==='callClear'){const cu=S.customers.get(d.id);if(cu){save('customers',cu.id,{...cu,nextFollowUp:''});toast('اتلغت المكالمة')}}
   else if(a==='openCustomer')openSheet({type:'customer',id:d.id});
@@ -589,8 +725,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   else if(a==='editCycle')openSheet({type:'cycleForm',id:d.id});
   else if(a==='goFilter'){S.filter=d.f;S.tab='customers';renderMain()}
   else if(a==='filter'){S.filter=d.f;renderMain()}
-  else if(a==='stage'){const cu=S.customers.get(d.id);if(cu&&cu.stage!==d.s)save('customers',d.id,{...cu,stage:d.s})}
-  else if(a==='contacted'){const cu=S.customers.get(d.id);if(cu){const nx=cu.stage!=='lost'&&(!cu.nextFollowUp||cu.nextFollowUp<=today())?addDays(today(),3):cu.nextFollowUp;save('customers',d.id,{...cu,lastContact:today(),nextFollowUp:nx||''});toast('اتسجّل. المتابعة الجاية '+(nx?rel(nx):'مش متحددة'))}}
+  else if(a==='stage'){const cu=S.customers.get(d.id);if(cu&&cu.stage!==d.s){save('customers',d.id,{...cu,stage:d.s,excludeReason:d.s==='lost'?cu.excludeReason:''});if(d.s==='lost')toast('اكتب سبب الاستبعاد تحت')}}
+  else if(a==='contacted'){const cu=S.customers.get(d.id);if(cu){const nx=cu.stage!=='lost'&&(!cu.nextFollowUp||cu.nextFollowUp<=today())?addDays(today(),3):cu.nextFollowUp;save('customers',d.id,{...cu,lastContact:today(),nextFollowUp:nx||'',followNote:nx!==cu.nextFollowUp?'':cu.followNote});toast('اتسجّل. المتابعة الجاية '+(nx?rel(nx):'مش متحددة'))}}
   else if(a==='vDone'||a==='vToggle'){updCycle(d.cy,c=>{const v=(c.vaccines||[]).find(x=>x.id===d.v);if(v){v.done=a==='vDone'?true:!v.done;v.doneAt=v.done?today():null}});if(a==='vDone')toast('اتعلّمت إنها اتعملت')}
   else if(a==='vDel')updCycle(d.cy,c=>{c.vaccines=(c.vaccines||[]).filter(x=>x.id!==d.v)})
   else if(a==='mDel')updCycle(d.cy,c=>{c.meds=(c.meds||[]).filter(x=>x.id!==d.m)})
@@ -604,7 +740,10 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   else if(a==='tplDel'){const tp=readTpl();tp.splice(+d.i,1);S.settings={...S.settings,template:tp};renderMain()}
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;if(S.sheet)closeSheet();renderMain();window.scrollTo(0,0)});
-document.addEventListener('change',e=>{const t=e.target;if(t.dataset.actChange==='nextFollow'){const cu=S.customers.get(t.dataset.id);if(cu)save('customers',cu.id,{...cu,nextFollowUp:t.value})}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.actChange==='nextFollow'){const cu=S.customers.get(t.dataset.id);if(cu)save('customers',cu.id,{...cu,nextFollowUp:t.value})}
+  else if(t.dataset.actChange==='custCampaign'){const cu=S.customers.get(t.dataset.id);if(cu){save('customers',cu.id,{...cu,campaignId:t.value});toast('اتحفظ')}}
+  else if(t.id==='metaCsv'&&t.files[0]){t.files[0].text().then(importMetaCSV).catch(()=>toast('مقدرتش أقرا الملف'));t.value=''}
+  else if(t.id==='impFile'&&t.files[0]){t.files[0].text().then(tx=>{S.sheet.text=tx.length>20000?'':tx;buildImport(tx)}).catch(()=>toast('مقدرتش أقرا الملف'));t.value=''}});
 document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;S._qFocus=true;renderMain()}});
 document.addEventListener('focusout',e=>{if(e.target.id==='q')S._qFocus=false});
 function readMsgs(){const f=document.querySelector('form[data-form="msgs"]');if(!f)return [...(S.settings.msgs||[])];const fd=new FormData(f);const out=[];for(let i=0;fd.has('x'+i);i++)out.push({title:fd.get('t'+i),text:fd.get('x'+i)});return out}
@@ -613,15 +752,20 @@ function readTpl(){const f=document.querySelector('form[data-form="tpl"]');if(!f
 document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();const fd=Object.fromEntries(new FormData(f));const k=f.dataset.form;
   if(k==='customer'){const name=(fd.name||'').trim();if(!name){toast('اكتب اسم العميل');return}
     const id=f.dataset.id||newId();const old=S.customers.get(id)||{createdAt:Date.now(),createdBy:S.me||null};
-    save('customers',id,{...old,name,phone:(fd.phone||'').trim(),area:(fd.area||'').trim(),source:fd.source||'',want:(fd.want||'').trim(),stage:fd.stage||'lead',nextFollowUp:fd.nextFollowUp||'',notes:fd.notes||'',lastContact:old.lastContact||today()});
+    save('customers',id,{...old,name,phone:(fd.phone||'').trim(),area:(fd.area||'').trim(),source:fd.source||'',want:(fd.want||'').trim(),stage:fd.stage||'lead',nextFollowUp:fd.nextFollowUp||'',notes:fd.notes||'',campaignId:fd.campaignId!==undefined?fd.campaignId:(old.campaignId||''),lastContact:old.lastContact||today()});
     openSheet({type:'customer',id});toast(f.dataset.id?'اتحفظ':'اتضاف العميل')}
   else if(k==='cycle'){const id=f.dataset.id||newId();const old=S.cycles.get(id)||{customerId:f.dataset.cid,createdAt:Date.now(),createdBy:S.me||null,vaccines:[],meds:[]};
-    const n={...old,startDate:fd.startDate,chickType:(fd.chickType||'').trim(),chickCount:num(fd.chickCount),chickPrice:num(fd.chickPrice),paid:num(fd.paid),notes:fd.notes||''};
+    const n={...old,startDate:fd.startDate,chickType:(fd.chickType||'').trim(),chickCount:num(fd.chickCount),chickPrice:num(fd.chickPrice),paid:num(fd.paid),notes:fd.notes||'',sellDay:num(fd.sellDay)||null};
     if(!f.dataset.id&&fd.tpl&&fd.startDate)n.vaccines=tplVaccines(fd.startDate);
     if(f.dataset.id&&old.startDate&&old.startDate!==fd.startDate){const shift=diffDays(old.startDate,fd.startDate);n.vaccines=(n.vaccines||[]).map(v=>v.done?v:{...v,date:addDays(v.date,shift)})}
     save('cycles',id,n);const cu=S.customers.get(n.customerId);if(cu&&!f.dataset.id&&cu.stage!=='buyer')save('customers',cu.id,{...cu,stage:'buyer'});
     openSheet({type:'customer',id:n.customerId});toast(f.dataset.id?'اتحفظت الدورة':'اتضافت الدورة')}
   else if(k==='paid'){updCycle(f.dataset.cy,c=>{c.paid=num(fd.paid)});toast('اتحفظ المدفوع')}
+  else if(k==='exReason'){const cu=S.customers.get(f.dataset.id);if(cu){save('customers',cu.id,{...cu,excludeReason:(fd.reason||'').trim()});toast('اتحفظ السبب')}}
+  else if(k==='fnote'){const cu=S.customers.get(f.dataset.id);if(cu){save('customers',cu.id,{...cu,followNote:(fd.note||'').trim()});toast('اتحفظت الملاحظة')}}
+  else if(k==='campaign'){const name=(fd.name||'').trim();if(!name){toast('اكتب اسم الحملة');return}const id=f.dataset.id||newId();const old=S.campaigns.get(id)||{createdAt:Date.now()};
+    const extras=readExtras().map(x=>({name:(x.name||'').trim(),amount:num(x.amount)})).filter(x=>x.name||x.amount);
+    save('campaigns',id,{...old,name,platform:(fd.platform||'').trim(),spend:num(fd.spend),messages:num(fd.messages),startDate:fd.startDate||'',endDate:fd.endDate||'',extras,notes:fd.notes||''});closeSheet();S.tab='campaigns';renderMain();toast(f.dataset.id?'اتحفظت الحملة':'اتضافت الحملة')}
   else if(k==='custVac'){const cid=f.dataset.pick?fd.cid:f.dataset.cid;const name=(fd.name||'').trim();if(!cid){toast('اختار العميل');return}if(!name||!fd.date)return;
     const cy=targetCycle(cid);updCycle(cy,c=>{c.vaccines=[...(c.vaccines||[]),{id:uid(),name,date:fd.date,done:false}]});
     toast('اتجدولت '+name+' '+rel(fd.date));if(f.dataset.pick)openSheet({type:'customer',id:cid});else f.reset()}
@@ -632,7 +776,7 @@ document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();const
   else if(k==='myname'){const n=(fd.name||'').trim();if(!n)return;S.profiles[S.me]=n;(S.team||[]).forEach(t=>{if(t.id===S.me)t.name=n});renderMain();
     if(sb)sb.from('team').update({name:n}).eq('id',S.me).then(({error})=>toast(error?'مقدرتش أحفظ الاسم':'اتحفظ الاسم'))}
   else if(k==='shop'){save('settings','main',{...S.settings,shopName:(fd.shopName||'').trim()});toast('اتحفظ')}
-  else if(k==='remMsgs'){save('settings','main',{...S.settings,vacMsg:(fd.vacMsg||'').trim(),followMsg:(fd.followMsg||'').trim()});toast('اتحفظت القوالب')}
+  else if(k==='remMsgs'){save('settings','main',{...S.settings,vacMsg:(fd.vacMsg||'').trim(),followMsg:(fd.followMsg||'').trim(),saleMsg:(fd.saleMsg||'').trim(),sellDay:num(fd.sellDay)||35});toast('اتحفظت القوالب')}
   else if(k==='msgs'){const ms=readMsgs().map(m=>({title:(m.title||'').trim(),text:(m.text||'').trim()})).filter(m=>m.text);save('settings','main',{...S.settings,msgs:ms});toast('اتحفظت الرسايل')}
   else if(k==='tpl'){const tp=readTpl().filter(r=>r.name&&num(r.day)>0).map(r=>({day:num(r.day),name:r.name.trim()})).sort((a,b)=>a.day-b.day);save('settings','main',{...S.settings,template:tp});toast('اتحفظ القالب')}
 });
@@ -647,19 +791,21 @@ function loadDemo(){S.mode='demo';const t=today();
   const st=addDays(t,-6);
   S.cycles.set('y1',{id:'y1',customerId:'d1',startDate:st,chickType:'كتكوت تسمين أبيض',chickCount:500,chickPrice:32,paid:12000,
     vaccines:tplVaccines(st),meds:[{id:'m1',name:'مضاد حيوي',qty:'2',total:450,date:addDays(t,-4)},{id:'m2',name:'فيتامينات',qty:'1',total:180,date:addDays(t,-1)}]});
+  S.campaigns.set('c1',{id:'c1',name:'(مثال) إعلان كتاكيت نوفمبر',platform:'فيسبوك',startDate:addDays(t,-10),spend:1500,messages:120,extras:[{name:'تصميم',amount:200}]});S.customers.get('d1').campaignId='c1';S.customers.get('d2').campaignId='c1';S.customers.get('d2').stage='promised';
   renderAll()}
 
 // ---------- boot ----------
 async function loadAll(){
-  const [c,y,st]=await Promise.all([sb.from('customers').select('*'),sb.from('cycles').select('*'),sb.from('settings').select('*').eq('id','main').maybeSingle()]);
+  const [c,y,st,cp]=await Promise.all([sb.from('customers').select('*'),sb.from('cycles').select('*'),sb.from('settings').select('*').eq('id','main').maybeSingle(),sb.from('campaigns').select('*')]);
   if(c.error||y.error)throw (c.error||y.error);
   S.customers.clear();c.data.forEach(r=>S.customers.set(r.id,fromRow('customers',r)));
   S.cycles.clear();y.data.forEach(r=>S.cycles.set(r.id,fromRow('cycles',r)));
+  if(!cp.error){S.campaigns.clear();cp.data.forEach(r=>S.campaigns.set(r.id,fromRow('campaigns',r)))}
   if(st.data&&st.data.data)S.settings={...DEFAULT_SETTINGS,...st.data.data};
   S.mode='live';renderAll()}
 function subscribe(){
   sb.channel('daftar').on('postgres_changes',{event:'*',schema:'public'},p=>{const t=p.table;
-    if(t==='customers'||t==='cycles'){const m=t==='customers'?S.customers:S.cycles;if(p.eventType==='DELETE'){if(p.old&&p.old.id)m.delete(p.old.id)}else m.set(p.new.id,fromRow(t,p.new))}
+    if(t==='customers'||t==='cycles'||t==='campaigns'){const m=t==='customers'?S.customers:t==='cycles'?S.cycles:S.campaigns;if(p.eventType==='DELETE'){if(p.old&&p.old.id)m.delete(p.old.id)}else m.set(p.new.id,fromRow(t,p.new))}
     else if(t==='settings'&&p.new&&p.new.id==='main')S.settings={...DEFAULT_SETTINGS,...p.new.data};
     else return;
     renderAll()}).subscribe()}
