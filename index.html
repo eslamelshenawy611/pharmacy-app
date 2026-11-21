@@ -485,6 +485,10 @@ function viewSettings(){const tp=S.settings.template||[];
       <p class="meta" style="margin:0">كل اللي هنا ليهم حساب ويقدروا يضيفوا ويعدّلوا. كل عميل ودورة بيتكتب عليهم مين ضافهم. عشان تضيف موظف جديد اطلب من Claude يعمله حساب.</p>
       <ul class="team-list">${(S.team||[]).map(t=>`<li><span>${esc(t.name||'بدون اسم')}</span>${t.id===S.me?'<span class="meta">ده انت</span>':''}</li>`).join('')}</ul>
       <form class="inline" data-form="myname"><label class="f w-name">اسمك اللي بيظهر للفريق<input name="name" id="myname" value="${esc(who(S.me)==='حد من الفريق'?'':who(S.me))}"></label><button class="btn sm">حفظ</button></form>
+      <form data-form="pass" style="display:flex;flex-direction:column;gap:8px"><div class="sub-h"><span>🔑 تغيير الباسورد</span></div>
+        <label class="f">الباسورد الجديد (٦ حروف أو أرقام على الأقل)<input name="p1" id="pw1" type="password" dir="ltr" autocomplete="new-password" minlength="6" required></label>
+        <label class="f">اكتبه تاني<input name="p2" id="pw2" type="password" dir="ltr" autocomplete="new-password" minlength="6" required></label>
+        <div class="form-acts"><button class="btn primary sm">غيّر الباسورد</button></div></form>
       <div><button class="btn danger sm" data-act="logout">خروج من الحساب</button></div></div>
   </section>`}
 
@@ -550,7 +554,7 @@ function viewCampaigns(){const cps=[...S.campaigns.values()].sort((a,b)=>(b.star
       <div><span>صرفت</span><b>${fmt(T.spend)}</b></div><div><span>رسايل</span><b>${fmt(T.msgs)}</b></div><div><span>عملاء من الحملات</span><b>${T.custs}</b></div>
       <div><span>اشتروا</span><b>${T.buyers}</b></div><div><span>تكلفة المشتري</span><b>${T.buyers?fmt(T.spend/T.buyers):'—'}</b></div><div><span>مبيعاتهم</span><b>${fmt(T.sales)}</b></div></div>
       ${noCamp?`<div class="meta">في ${noCamp} عميل مش مربوطين بحملة. افتح العميل واختار "جه من حملة".</div>`:''}</div>`:''}
-    ${cps.length?cps.map((cp,i)=>{const x=all[i];return `<div class="camp"><div class="camp-head"><b>${esc(cp.name)}</b><span class="meta">${esc([cp.platform,cp.startDate?shortDate(cp.startDate):'',cp.endDate?'← '+shortDate(cp.endDate):''].filter(Boolean).join(' '))}</span><button class="btn ghost sm" data-act="editCampaign" data-id="${esc(cp.id)}">تعديل</button></div>
+    ${cps.length?cps.map((cp,i)=>{const x=all[i];return `<div class="camp"><div class="camp-head"><b>${esc(cp.name)}</b><span class="meta">${esc([cp.platform,cp.startDate?shortDate(cp.startDate):'',cp.endDate?'← '+shortDate(cp.endDate):''].filter(Boolean).join(' '))}</span><button class="btn ghost sm" data-act="editCampaign" data-id="${esc(cp.id)}">تعديل</button><button class="btn danger sm" data-act="delCampaign" data-id="${esc(cp.id)}">🗑 امسح</button></div>
       <div class="kv"><div><span>صرفت</span><b>${fmt(x.spend)}</b></div><div><span>رسايل</span><b>${fmt(x.msgs)}</b></div><div><span>تكلفة الرسالة</span><b>${fmt2(x.perMsg)}</b></div>
       <div><span>عملاء</span><b>${x.custs}</b></div><div><span>وعد/حجز</span><b>${x.promised}/${x.booked}</b></div><div><span>اشتروا</span><b>${x.buyers}</b></div>
       <div><span>تكلفة العميل</span><b>${fmt2(x.perCust)}</b></div><div><span>تكلفة المشتري</span><b>${fmt2(x.perBuyer)}</b></div><div><span>مبيعاتهم</span><b>${fmt(x.sales)}</b></div></div>
@@ -754,7 +758,7 @@ function sheetCycleForm(){const c=S.sheet.id?S.cycles.get(S.sheet.id):null;const
   </form>`}
 
 // ---------- actions ----------
-const armed={};function confirmTap(btn,key,label){if(armed[key]&&Date.now()-armed[key]<4000){delete armed[key];return true}armed[key]=Date.now();btn.textContent=label;setTimeout(()=>{if(armed[key]){delete armed[key];renderSheet(false)}},4000);return false}
+const armed={};function confirmTap(btn,key,label){if(armed[key]&&Date.now()-armed[key]<4000){delete armed[key];return true}armed[key]=Date.now();btn.textContent=label;setTimeout(()=>{if(armed[key]){delete armed[key];if(S.sheet)renderSheet(false);else renderMain()}},4000);return false}
 function tplVaccines(start){return (S.settings.template||[]).filter(r=>r.name&&num(r.day)>0).map(r=>({id:uid(),name:r.name,date:addDays(start,num(r.day)-1),done:false}))}
 function updCycle(id,fn){const c=S.cycles.get(id);if(!c)return;const n=JSON.parse(JSON.stringify(c));fn(n);save('cycles',id,n)}
 function touchCustomer(cid){const cu=S.customers.get(cid);if(cu&&cu.stage==='lead'){/* leave */}}
@@ -830,6 +834,9 @@ document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();const
     save('cycles',id,n);const cu=S.customers.get(n.customerId);if(cu&&!f.dataset.id&&cu.stage!=='buyer')save('customers',cu.id,{...cu,stage:'buyer'});
     openSheet({type:'customer',id:n.customerId});toast(f.dataset.id?'اتحفظت الدورة':'اتضافت الدورة')}
   else if(k==='paid'){updCycle(f.dataset.cy,c=>{c.paid=num(fd.paid)});toast('اتحفظ المدفوع')}
+  else if(k==='pass'){if((fd.p1||'').length<6){toast('الباسورد لازم ٦ حروف أو أرقام على الأقل');return}if(fd.p1!==fd.p2){toast('الباسوردين مش زي بعض');return}
+    if(!sb||S.mode==='demo'){toast('مش متاح في النسخة التجريبية');return}const btn=f.querySelector('button');btn.disabled=true;
+    sb.auth.updateUser({password:fd.p1}).then(({error})=>{btn.disabled=false;if(error){toast(/same|different/i.test(error.message)?'ده نفس الباسورد القديم':'مقدرتش أغيّره، اتأكد من النت وجرّب تاني')}else{f.reset();toast('اتغيّر الباسورد ✅ استخدمه المرة الجاية')}})}
   else if(k==='exReason'){const cu=S.customers.get(f.dataset.id);if(cu){save('customers',cu.id,{...cu,excludeReason:(fd.reason||'').trim()});toast('اتحفظ السبب')}}
   else if(k==='fnote'){const cu=S.customers.get(f.dataset.id);if(cu){save('customers',cu.id,{...cu,followNote:(fd.note||'').trim()});toast('اتحفظت الملاحظة')}}
   else if(k==='campaign'){const name=(fd.name||'').trim();if(!name){toast('اكتب اسم الحملة');return}const id=f.dataset.id||newId();const old=S.campaigns.get(id)||{createdAt:Date.now()};
