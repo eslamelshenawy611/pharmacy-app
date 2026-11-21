@@ -259,7 +259,7 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 document.documentElement.setAttribute('dir','rtl');document.documentElement.setAttribute('lang','ar');
 
 // ---------- constants ----------
-const STAGES=[{k:'lead',t:'محتمل'},{k:'follow',t:'محتاج متابعة'},{k:'promised',t:'وعد يحجز ⭐'},{k:'booked',t:'حجز'},{k:'buyer',t:'اشترى'},{k:'lost',t:'مستبعد'}];
+const STAGES=[{k:'lead',t:'محتمل'},{k:'follow',t:'محتاج متابعة'},{k:'promised',t:'وعد (محتاج تأكيد) ⏳'},{k:'booked',t:'حجز مؤكد ✅'},{k:'buyer',t:'اشترى'},{k:'lost',t:'مستبعد'}];
 const LEGACY_STAGE={lead:'lead',follow:'follow',promised:'follow',booked:'follow',buyer:'buyer',lost:'lost'};
 const EXCLUDE_REASONS=['مش جاد','السعر','اشترى من مكان تاني','بعيد عننا','مش بيرد','مش وقته'];
 const STAGE_T=Object.fromEntries(STAGES.map(s=>[s.k,s.t]));
@@ -270,7 +270,11 @@ const DEFAULT_MSGS=[{title:'ترحيب بعميل جديد',text:'أهلاً ي�
 const DEFAULT_VAC_MSG='أهلاً يا {الاسم}، بنفكّرك إن ميعاد تحصينة {التحصينة} للكتاكيت {الميعاد}{العمر}. لو محتاج التحصينة أو أي استفسار احنا موجودين. {الصيدلية}';
 const DEFAULT_FOLLOW_MSG='أهلاً يا {الاسم}، معاك {الصيدلية}. حبينا نطمّن عليك ونشوف لو محتاج حاجة للدورة الجاية.';
 const DEFAULT_SALE_MSG='أهلاً يا {الاسم}، معاك {الصيدلية}. الدورة قرّبت على البيع، ربنا يكرمك. حابب نحجزلك كتاكيت الدورة الجاية؟';
-const DEFAULT_SETTINGS={shopName:'مركز الحياة',template:DEFAULT_TEMPLATE,msgs:[],vacMsg:'',followMsg:'',saleMsg:'',sellDay:35};
+const DEFAULT_BOOK_PRE_MSG='أهلاً يا {الاسم} 🌿 معاك {الصيدلية}. بنفكّرك بس إن ميعاد حجز الكتاكيت اللي اتفقنا عليه يوم {الميعاد}. لو لسه على نفس الميعاد قولّنا عشان نجهّزلك دفعتك ونكون مستعدين، ولو عندك أي سؤال عن تجهيز العنبر قبل الاستلام إحنا معاك. نجاحك نجاحنا 🤝';
+const DEFAULT_BOOK_CONFIRM_MSG='أهلاً يا {الاسم} 🌿 معاك {الصيدلية}. ميعاد حجز الكتاكيت {الفاضل} (يوم {الميعاد})، ولسه مستنيين تأكيدك عشان نثبّتلك الدفعة ونجهّزها. ابعتلنا «تمام» لو على نفس الميعاد، أو قولّنا لو حابب تغيّره. إحنا معاك، ونجاحك نجاحنا 🤝';
+const DEFAULT_BOOK_DAY_MSG='صباح الخير يا {الاسم} 🌿 النهاردة ميعاد حجز الكتاكيت اللي اتكلمنا عليه. تحب نأكّد الحجز ونجهّزلك الدفعة؟ ولو الظروف اتغيّرت مفيش مشكلة خالص، قولّنا الميعاد اللي يريحك. إحنا معاك خطوة بخطوة، ونجاحك نجاحنا 🤝 {الصيدلية}';
+const DEFAULT_BOOK_LATE_MSG='أهلاً يا {الاسم}، معاك {الصيدلية} 🌿 كنا متفقين على حجز الكتاكيت يوم {الميعاد}، وحبينا نطمّن عليك. لو لسه ناوي قولّنا الميعاد اللي يناسبك ونرتّبلك كل حاجة. إحنا معاك، ونجاحك نجاحنا 🤝';
+const DEFAULT_SETTINGS={shopName:'مركز الحياة',template:DEFAULT_TEMPLATE,msgs:[],vacMsg:'',followMsg:'',saleMsg:'',sellDay:35,bookPreMsg:'',bookConfirmMsg:'',bookDayMsg:'',bookLateMsg:''};
 const ICON_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
 const ICON_WA='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.3 2.2 2.2 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>';
 
@@ -314,14 +318,26 @@ const firstName=n=>String(n||'').split(/[\s-]+/)[0];
 function waVaccineText(x){const when=x.v.date===today()?'النهاردة':x.v.date===addDays(today(),1)?'بكرة':'يوم '+shortDate(x.v.date);const age=ageOn(x.c.startDate,x.v.date);
   return fillMsg((S.settings.vacMsg||'').trim()||DEFAULT_VAC_MSG,x.cu,{vac:x.v.name,when,age:age&&age>0?` (عمر ${age} يوم)`:''}).trim()}
 function waFollowText(cu){return fillMsg((S.settings.followMsg||'').trim()||DEFAULT_FOLLOW_MSG,cu).trim()}
-function fillMsg(t,cu,x){const due=custTotals(cu.id).due;x=x||{};return String(t||'').replace(/\{التحصينة\}/g,x.vac||'').replace(/\{الميعاد\}/g,x.when||'').replace(/\{العمر\}/g,x.age||'').replace(/\{الاسم\}/g,firstName(cu.name)).replace(/\{الاسم كامل\}/g,cu.name||'').replace(/\{الصيدلية\}/g,S.settings.shopName||'الصيدلية').replace(/\{المنطقة\}/g,cu.area||'').replace(/\{الباقي\}/g,fmt(Math.max(due,0)))}
+// ---------- booking reminders: 3 days before the promised date, on the day, and a gentle check if it passed ----------
+const BOOK_RANK={'':0,pre:1,pre3:1,pre2:2,pre1:3,day:4,late:5};
+const BOOK_OPEN=cu=>cu.bookingDate&&!['booked','buyer','lost'].includes(cu.stage||'lead');
+function bookPhase(cu){if(!BOOK_OPEN(cu))return null;const d=diffDays(today(),cu.bookingDate);const ph=d>=1&&d<=3?'pre'+d:d===0?'day':d<0&&d>=-7?'late':null;
+  return ph&&BOOK_RANK[ph]>(BOOK_RANK[cu.bookingNudge||'']||0)?{ph,d}:null}
+function bookingAlerts(){const out=[];S.customers.forEach(cu=>{const p=bookPhase(cu);if(p)out.push({cu,...p})});return out.sort((a,b)=>a.d-b.d)}
+function waBookText(cu,ph){const t=ph==='pre3'?(S.settings.bookPreMsg||'').trim()||DEFAULT_BOOK_PRE_MSG:ph==='pre2'||ph==='pre1'?(S.settings.bookConfirmMsg||'').trim()||DEFAULT_BOOK_CONFIRM_MSG:ph==='day'?(S.settings.bookDayMsg||'').trim()||DEFAULT_BOOK_DAY_MSG:(S.settings.bookLateMsg||'').trim()||DEFAULT_BOOK_LATE_MSG;
+  return fillMsg(t,cu,{when:fmtDate(cu.bookingDate),left:ph==='pre1'?'بكرة':ph==='pre2'?'بعد يومين':''}).trim()}
+function firstOfNextMonth(){const d=new Date(today()+'T12:00:00');return iso(new Date(d.getFullYear(),d.getMonth()+1,1,12))}
+function setBooking(cu,date){const st=cu.stage||'lead';const promote=date&&(st==='lead'||st==='follow');
+  save('customers',cu.id,{...cu,bookingDate:date||'',bookingNudge:date===cu.bookingDate?(cu.bookingNudge||''):'',stage:promote?'promised':st});
+  toast(date?'ميعاد الحجز '+fmtDate(date)+'. لحد ما يأكّد هفكّرك قبلها بـ ٣ أيام وبيومين وبيوم ويوم الميعاد':'اتلغى ميعاد الحجز')}
+function fillMsg(t,cu,x){const due=custTotals(cu.id).due;x=x||{};return String(t||'').replace(/\{التحصينة\}/g,x.vac||'').replace(/\{الميعاد\}/g,x.when||'').replace(/\{العمر\}/g,x.age||'').replace(/\{الفاضل\}/g,x.left||'').replace(/\{الاسم\}/g,firstName(cu.name)).replace(/\{الاسم كامل\}/g,cu.name||'').replace(/\{الصيدلية\}/g,S.settings.shopName||'الصيدلية').replace(/\{المنطقة\}/g,cu.area||'').replace(/\{الباقي\}/g,fmt(Math.max(due,0)))}
 function waBtn(phone,text,label='واتساب'){const l=waLink(phone,text);return l?`<a class="btn wa sm" href="${esc(l)}" target="_blank" rel="noopener">${ICON_WA}${label}</a>`:`<span class="meta">مفيش رقم</span>`}
 
 // ---------- persistence (Supabase) ----------
-const MAP={customers:{name:'name',phone:'phone',area:'area',source:'source',want:'want',stage:'stage',nextFollowUp:'next_follow_up',lastContact:'last_contact',notes:'notes',excludeReason:'exclude_reason',followNote:'follow_note',campaignId:'campaign_id'},
+const MAP={customers:{name:'name',phone:'phone',area:'area',source:'source',want:'want',stage:'stage',nextFollowUp:'next_follow_up',lastContact:'last_contact',notes:'notes',excludeReason:'exclude_reason',followNote:'follow_note',campaignId:'campaign_id',bookingDate:'booking_date',bookingNudge:'booking_nudge'},
   campaigns:{name:'name',platform:'platform',startDate:'start_date',endDate:'end_date',spend:'spend',messages:'messages',extras:'extras',notes:'notes'},
   cycles:{customerId:'customer_id',startDate:'start_date',chickType:'chick_type',chickCount:'chick_count',chickPrice:'chick_price',paid:'paid',notes:'notes',vaccines:'vaccines',meds:'meds',sellDay:'sell_day',soldOn:'sold_on'}};
-const DATE_COLS=new Set(['next_follow_up','last_contact','start_date','end_date','sold_on']);
+const DATE_COLS=new Set(['next_follow_up','last_contact','start_date','end_date','sold_on','booking_date']);
 function toRow(col,id,o){if(col==='settings'){const data={};Object.keys(o).forEach(k=>{if(k!=='id'&&o[k]!==undefined)data[k]=o[k]});return{id,data}}const r={id};for(const[k,c]of Object.entries(MAP[col])){let v=o[k];if(v===undefined)continue;if(DATE_COLS.has(c)&&!v)v=null;r[c]=v}
   if(col==='customers'&&r.stage){r.pipeline=r.stage;r.stage=LEGACY_STAGE[r.stage]||'lead'}if(col==='customers'&&r.campaign_id==='')r.campaign_id=null;return r}
 function fromRow(col,r){const o={id:r.id};for(const[k,c]of Object.entries(MAP[col]))o[k]=r[c]??(DATE_COLS.has(c)?'':r[c]);
@@ -357,7 +373,7 @@ function setSync(){const el=$('#sync'),tx=$('#syncTxt');el.className='sync '+(S.
   else if(S.mode==='error')b.innerHTML='<div class="banner err">مش قادر أوصل للبيانات دلوقتي. اتأكد من النت، والصفحة هتكمّل لوحدها أول ما الاتصال يرجع.</div>';
   else b.innerHTML='';
   $('#shopTitle').textContent='دفتر عملاء '+(S.settings.shopName||'الصيدلية')}
-function renderBadge(){const r=reminders();const n=r.vac.filter(x=>x.b!=='tom').length+r.fol.filter(x=>x.b!=='tom').length+saleAlerts().filter(x=>x.d<=1).length;const b=$('#todayBadge');b.hidden=!n;b.textContent=n}
+function renderBadge(){const r=reminders();const n=r.vac.filter(x=>x.b!=='tom').length+r.fol.filter(x=>x.b!=='tom').length+saleAlerts().filter(x=>x.d<=1).length+bookingAlerts().length;const b=$('#todayBadge');b.hidden=!n;b.textContent=n}
 function renderMain(){setSync();document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===S.tab?'page':'false'));
   $('#fab').hidden=!(S.tab==='customers'||S.tab==='today');
   const m=$('#main');
@@ -387,11 +403,16 @@ function viewToday(){const r=reminders(),c=counts();
     <div class="tiles t6">
       <button class="tile" data-act="goFilter" data-f="lead"><b>${c.lead}</b><span>محتمل</span></button>
       <button class="tile" data-act="goFilter" data-f="follow"><b>${c.follow}</b><span>محتاج متابعة</span></button>
-      <button class="tile" data-act="goFilter" data-f="promised"><b>${c.promised}</b><span>وعد يحجز ⭐</span></button>
-      <button class="tile" data-act="goFilter" data-f="booked"><b>${c.booked}</b><span>حجز</span></button>
+      <button class="tile" data-act="goFilter" data-f="promised"><b>${c.promised}</b><span>وعد (محتاج تأكيد) ⏳</span></button>
+      <button class="tile" data-act="goFilter" data-f="booked"><b>${c.booked}</b><span>حجز مؤكد ✅</span></button>
       <button class="tile" data-act="goFilter" data-f="buyer"><b>${c.buyer}</b><span>اشترى</span></button>
       <button class="tile money" data-act="goFilter" data-f="debt"><b>${fmt(debtTotal())}</b><span>فلوس برة (جنيه)</span></button>
     </div>
+    ${(()=>{const al=bookingAlerts();const pre=x=>[x.d===1?'الحجز بكرة · محتاج تأكيد':x.d===2?'الحجز بعد يومين · محتاج تأكيد':'الحجز بعد ٣ أيام','p-tom','tom'];const L={pre3:pre,pre2:pre,pre1:pre,day:()=>['ميعاد الحجز النهاردة','p-today','today'],late:x=>['الميعاد عدى من '+(-x.d)+(-x.d===1?' يوم':' أيام'),'p-late','late']};
+      return al.length?`<div class="group"><div class="h-row"><h2>🐣 فكّرهم بالحجز</h2><span class="hint">${al.length} عميل لسه مأكّدش</span></div>${al.map(x=>{const l=L[x.ph](x);return `<article class="rem ${l[2]}">
+      <div class="rem-main" data-act="openCustomer" data-id="${esc(x.cu.id)}"><b>${esc(x.cu.name)}</b><span>وعد يحجز ${esc(fmtDate(x.cu.bookingDate))}${x.cu.want?' · '+esc(x.cu.want):''}${x.cu.area?' · '+esc(x.cu.area):''}${x.cu.followNote?'<br>📝 '+esc(x.cu.followNote):''}</span></div>
+      <span class="pill ${l[1]}">${l[0]}</span>
+      <div class="acts">${waBtn(x.cu.phone,waBookText(x.cu,x.ph))}<button class="btn sm" data-act="bookNudged" data-id="${esc(x.cu.id)}" data-ph="${x.ph}">${ICON_CHECK}بعتّله</button><button class="btn sm" data-act="bookDone" data-id="${esc(x.cu.id)}">✅ أكّد الحجز</button></div></article>`}).join('')}</div>`:''})()}
     ${(()=>{const al=saleAlerts();return al.length?`<div class="group"><div class="h-row"><h2>دورات قرّبت تتباع</h2><span class="hint">كلّمهم على الدورة الجاية</span></div>${al.map(x=>`<article class="rem ${x.d<0?'late':'today'}">
       <div class="rem-main" data-act="openCustomer" data-id="${esc(x.cu.id)}"><b>${esc(x.cu.name)}</b><span>البيع المتوقع ${esc(shortDate(x.sl))} (${esc(rel(x.sl))})${x.c.chickCount?' · '+fmt(num(x.c.chickCount))+' '+esc(x.c.chickType||'كتكوت'):''}</span></div>
       <span class="pill ${x.d<0?'p-late':'p-today'}">الدورة الجاية</span>
@@ -401,14 +422,14 @@ function viewToday(){const r=reminders(),c=counts();
   </section>`}
 
 function viewCustomers(){const c=counts();const q=S.q.trim();
-  const fl=[['all','الكل'],['lead','محتمل'],['follow','محتاج متابعة'],['promised','وعد يحجز ⭐'],['booked','حجز'],['buyer','اشترى'],['lost','مستبعد'],['debt','عليهم فلوس']];
+  const fl=[['all','الكل'],['lead','محتمل'],['follow','محتاج متابعة'],['promised','وعد (محتاج تأكيد) ⏳'],['booked','حجز مؤكد ✅'],['buyer','اشترى'],['lost','مستبعد'],['debt','عليهم فلوس']];
   let list=[...S.customers.values()];
   if(S.filter==='debt')list=list.filter(cu=>custTotals(cu.id).due>0.5);else if(S.filter!=='all')list=list.filter(cu=>(cu.stage||'lead')===S.filter);
   if(S.campFilter)list=list.filter(cu=>cu.campaignId===S.campFilter);
   if(q)list=list.filter(cu=>[cu.name,cu.phone,cu.area,cu.want].join(' ').includes(q));
   list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   const rows=list.map(cu=>{const t=custTotals(cu.id);const st=cu.stage||'lead';
-    const meta=[cu.area,t.cycles?`${t.cycles} دورة · ${fmt(t.count)} كتكوت`:cu.want,cu.stage==='lost'&&cu.excludeReason?'السبب: '+cu.excludeReason:'',st!=='lost'&&cu.nextFollowUp?'مكالمة '+rel(cu.nextFollowUp):''].filter(Boolean).join(' · ');
+    const meta=[cu.area,t.cycles?`${t.cycles} دورة · ${fmt(t.count)} كتكوت`:cu.want,cu.stage==='lost'&&cu.excludeReason?'السبب: '+cu.excludeReason:'',BOOK_OPEN(cu)?'🐣 حجز '+shortDate(cu.bookingDate):'',st!=='lost'&&cu.nextFollowUp?'مكالمة '+rel(cu.nextFollowUp):''].filter(Boolean).join(' · ');
     return `<button class="row" data-act="openCustomer" data-id="${esc(cu.id)}"><div class="who"><b>${esc(cu.name)}</b><span>${esc(meta)}</span></div>
       <div class="end"><span class="pill p-${st}">${STAGE_T[st]}</span>${t.due>0.5?`<span class="pill p-debt num">عليه ${fmt(t.due)}</span>`:''}</div></button>`}).join('');
   return `<section class="view">
@@ -448,6 +469,10 @@ function viewSettings(){const tp=S.settings.template||[];
         <label class="f">🐔 قالب الدورة الجاية (لما الدورة تقرب تتباع)<textarea name="saleMsg" id="rm-sale" placeholder="${esc(DEFAULT_SALE_MSG)}">${esc(S.settings.saleMsg||'')}</textarea></label>
         <label class="f">البيع عادةً يوم كام من عمر الدورة<input name="sellDay" id="rm-sell" type="number" min="1" value="${esc(S.settings.sellDay||35)}"></label>
         <label class="f">📞 قالب متابعة العميل<textarea name="followMsg" id="rm-fol" placeholder="${esc(DEFAULT_FOLLOW_MSG)}">${esc(S.settings.followMsg||'')}</textarea></label>
+        <label class="f">🐣 تذكير الحجز (قبل الميعاد بـ ٣ أيام)<textarea name="bookPreMsg" id="rm-bpre" placeholder="${esc(DEFAULT_BOOK_PRE_MSG)}">${esc(S.settings.bookPreMsg||'')}</textarea></label>
+        <label class="f">🐣 طلب تأكيد الحجز (قبلها بيومين وبيوم). {الفاضل} = «بعد يومين» أو «بكرة»<textarea name="bookConfirmMsg" id="rm-bconf" placeholder="${esc(DEFAULT_BOOK_CONFIRM_MSG)}">${esc(S.settings.bookConfirmMsg||'')}</textarea></label>
+        <label class="f">🐣 تذكير الحجز (يوم الميعاد)<textarea name="bookDayMsg" id="rm-bday" placeholder="${esc(DEFAULT_BOOK_DAY_MSG)}">${esc(S.settings.bookDayMsg||'')}</textarea></label>
+        <label class="f">🐣 لو الميعاد عدى ومحجزش<textarea name="bookLateMsg" id="rm-blate" placeholder="${esc(DEFAULT_BOOK_LATE_MSG)}">${esc(S.settings.bookLateMsg||'')}</textarea></label>
         <div class="form-acts"><button class="btn primary sm">حفظ القوالب</button></div>
       </form></div>
     <div class="card"><h3>رسايل واتساب تانية</h3>
@@ -520,7 +545,7 @@ function viewCampaigns(){const cps=[...S.campaigns.values()].sort((a,b)=>(b.star
   return `<section class="view">
     <div class="h-row"><h2>الحملات الإعلانية</h2><button class="btn primary sm" data-act="newCampaign">+ حملة</button></div>
     <div class="card"><h3>تقرير فيسبوك</h3><p class="meta" style="margin:0">من مدير الإعلانات: Reports ← Export ← CSV، وبعدين اختار الملف هنا (من الموبايل أو الكمبيوتر). هيحدّث المصاريف والرسايل لكل حملة بالاسم، ويضيف الحملات الجديدة.</p>
-      <label class="btn sm" style="align-self:flex-start;cursor:pointer">📄 استيراد ملف CSV<input type="file" id="metaCsv" accept=".csv,text/csv,.txt" hidden></label></div>
+      <label class="btn sm" style="align-self:flex-start;cursor:pointer">📄 استيراد ملف (CSV أو Excel)<input type="file" id="metaCsv" accept=".csv,text/csv,.txt,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,*/*" hidden></label></div>
     ${cps.length?`<div class="card"><h3>الإجمالي</h3><div class="kv">
       <div><span>صرفت</span><b>${fmt(T.spend)}</b></div><div><span>رسايل</span><b>${fmt(T.msgs)}</b></div><div><span>عملاء من الحملات</span><b>${T.custs}</b></div>
       <div><span>اشتروا</span><b>${T.buyers}</b></div><div><span>تكلفة المشتري</span><b>${T.buyers?fmt(T.spend/T.buyers):'—'}</b></div><div><span>مبيعاتهم</span><b>${fmt(T.sales)}</b></div></div>
@@ -555,20 +580,50 @@ function parseCSV(text){text=text.replace(/^\uFEFF/,'');const first=text.split(/
     if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=ch}
     else if(ch==='"')q=true;else if(ch===d){row.push(cell);cell=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell=''}else cell+=ch}
   if(cell||row.length){row.push(cell);rows.push(row)}return rows.filter(r=>r.some(c=>String(c).trim()))}
-function importMetaCSV(text){const rows=parseCSV(text);if(rows.length<2){toast('الملف فاضي أو مش CSV');return}
-  const h=rows[0].map(x=>String(x).trim().toLowerCase());const find=(...res)=>{for(const re of res){const i=h.findIndex(x=>re.test(x));if(i>=0)return i}return -1};
-  const iName=find(/campaign name/,/اسم الحملة/,/ad set name/,/اسم مجموعة الإعلانات/,/ad name/,/اسم الإعلان/);
-  const iSpend=find(/amount spent/,/المبلغ المنفق/,/spent/,/المنفق/,/الإنفاق/);
-  const iMsg=find(/messaging conversations started/,/محادثات.*بد/,/conversations/,/المحادثات/,/^results$/,/^النتائج$/,/results/,/النتائج/);
-  const iStart=find(/reporting starts/,/بدء إعداد التقارير/,/بداية/,/starts/);const iEnd=find(/reporting ends/,/انتهاء إعداد التقارير/,/نهاية/,/ends/);
-  if(iName<0||iSpend<0){toast('مش لاقي عمود اسم الحملة أو المبلغ المنفق في الملف');return}
-  const nv=v=>num(String(v||'').replace(/[^\d.,٠-٩]/g,''));const dt=v=>{const m=String(v||'').match(/(\d{4})-(\d{2})-(\d{2})/);return m?m[0]:''};
-  const agg={};rows.slice(1).forEach(r=>{const name=String(r[iName]||'').trim();if(!name)return;const a=agg[name]||(agg[name]={spend:0,msgs:0,start:'',end:''});a.spend+=nv(r[iSpend]);if(iMsg>=0)a.msgs+=nv(r[iMsg]);
+function importMetaCSV(text){importMetaRows(parseCSV(text))}
+const normH=x=>String(x||'').replace(/^﻿/,'').replace(/[‎‏‪-‮]/g,'').trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي');
+function metaCols(h){const find=(ok,bad)=>h.findIndex(x=>ok.some(re=>re.test(x))&&!(bad||[]).some(re=>re.test(x)));
+  let iName=find([/campaign name/,/اسم الحمله/]);if(iName<0)iName=find([/ad set name/,/اسم مجموعه الاعلانات/]);if(iName<0)iName=find([/ad name/,/اسم الاعلان/]);if(iName<0)iName=find([/^campaign$/,/^الحمله$/,/حمله/],[/تسليم|delivery|ميزانيه|budget|id|معرف/]);
+  const iSpend=find([/amount spent/,/spend/,/مبلغ.*(انفاق|منفق|مصروف|صرف)/,/(انفاق|منفق|مصروف|المصروفات)/,/المبلغ/],[/per|تكلفه|cpm|cpc|cost per/]);
+  let iMsg=find([/messaging conversations started/,/محادثات|محادثه|مراسله/],[/تكلفه|cost/]);if(iMsg<0)iMsg=find([/^results$/,/^النتائج$/,/results|نتائج|النتائج/],[/cost|تكلفه|indicator|مؤشر|initial|اوليه/]);
+  const iStart=find([/reporting starts/,/(بدء|بدايه).*(تقرير|تقارير)/,/^starts$/]);const iEnd=find([/reporting ends/,/(انتهاء|نهايه).*(تقرير|تقارير)/]);
+  return{iName,iSpend,iMsg,iStart,iEnd}}
+function importMetaRows(rows){rows=(rows||[]).filter(r=>r&&r.some(c=>String(c??'').trim()));if(rows.length<2){toast('الملف فاضي أو مش مفهوم. صدّره CSV أو Excel من مدير الإعلانات');return}
+  let hi=-1,c=null;for(let k=0;k<Math.min(rows.length,15);k++){const cc=metaCols(rows[k].map(normH));if(cc.iName>=0&&cc.iSpend>=0){hi=k;c=cc;break}}
+  if(hi<0){const hdr=rows[0].slice(0,6).map(x=>String(x).trim()).filter(Boolean).join('، ');toast('مش لاقي عمود اسم الحملة أو المبلغ المنفق. أول أعمدة في الملف: '+hdr.slice(0,120));console.warn('meta headers',rows[0]);return}
+  const {iName,iSpend,iMsg,iStart,iEnd}=c;
+  const nv=v=>{if(typeof v==='number')return v;let t=String(v||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/٫/g,'.').replace(/٬/g,',');t=t.replace(/[^\d.,-]/g,'');if(/,\d{1,2}$/.test(t)&&!/\./.test(t))t=t.replace(',','.');return num(t)};
+  const dt=v=>{if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Date.UTC(1899,11,30)+v*864e5);return d.toISOString().slice(0,10)}const t=String(v||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x));let m=t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;m=t.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:''};
+  const agg={};rows.slice(hi+1).forEach(r=>{const name=String(r[iName]??'').trim();if(!name||/^(total|الاجمالي|الإجمالي|results from)/i.test(name))return;const a=agg[name]||(agg[name]={spend:0,msgs:0,start:'',end:''});a.spend+=nv(r[iSpend]);if(iMsg>=0)a.msgs+=nv(r[iMsg]);
     const s1=iStart>=0?dt(r[iStart]):'',e1=iEnd>=0?dt(r[iEnd]):'';if(s1&&(!a.start||s1<a.start))a.start=s1;if(e1&&(!a.end||e1>a.end))a.end=e1});
+  if(!Object.keys(agg).length){toast('لقيت الأعمدة بس مفيش صفوف حملات في الملف');return}
   let up=0,add=0;Object.entries(agg).forEach(([name,a])=>{const ex=[...S.campaigns.values()].find(c=>c.name.trim().toLowerCase()===name.toLowerCase());
     if(ex){save('campaigns',ex.id,{...ex,spend:Math.round(a.spend*100)/100,messages:a.msgs||ex.messages,startDate:a.start||ex.startDate,endDate:a.end||ex.endDate});up++}
     else{save('campaigns',newId(),{name,platform:'فيسبوك',spend:Math.round(a.spend*100)/100,messages:a.msgs,startDate:a.start,endDate:a.end,extras:[],notes:'',createdAt:Date.now()});add++}});
   toast(`اتحدّثت ${up} حملة واتضافت ${add}`)}
+// ---- read any table file: CSV (utf-8 / utf-16 / windows-1256) or Excel .xlsx
+async function readTableFile(file){const buf=new Uint8Array(await file.arrayBuffer());
+  if(buf[0]===0x50&&buf[1]===0x4B)return await readXlsx(buf);
+  if(buf[0]===0xD0&&buf[1]===0xCF)throw new Error('xls');
+  let text;if(buf[0]===0xFF&&buf[1]===0xFE)text=new TextDecoder('utf-16le').decode(buf.subarray(2));else if(buf[0]===0xFE&&buf[1]===0xFF)text=new TextDecoder('utf-16be').decode(buf.subarray(2));
+  else{text=new TextDecoder('utf-8').decode(buf);if(text.includes('�')){try{text=new TextDecoder('windows-1256').decode(buf)}catch(e){}}}
+  return parseCSV(text)}
+async function unzip(buf){const dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);let e=buf.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('zip');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const files={};const dec=new TextDecoder();
+  for(let k=0;k<n;k++){const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    const name=dec.decode(buf.subarray(p+46,p+46+nl));files[name]={method,csize,lo};p+=46+nl+xl+cl}
+  return async name=>{const f=files[name];if(!f)return null;const lnl=dv.getUint16(f.lo+26,true),lxl=dv.getUint16(f.lo+28,true);const data=buf.subarray(f.lo+30+lnl+lxl,f.lo+30+lnl+lxl+f.csize);
+    if(f.method===0)return dec.decode(data);const ds=new DecompressionStream('deflate-raw');const out=await new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer();return dec.decode(out)}}
+async function readXlsx(buf){const get=await unzip(buf);const P=new DOMParser();
+  const ssx=await get('xl/sharedStrings.xml');const ss=ssx?[...P.parseFromString(ssx,'application/xml').getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join('')):[];
+  let sheet='xl/worksheets/sheet1.xml';const wb=await get('xl/workbook.xml'),rels=await get('xl/_rels/workbook.xml.rels');
+  if(wb&&rels){const first=P.parseFromString(wb,'application/xml').getElementsByTagName('sheet')[0];const rid=first&&(first.getAttribute('r:id')||first.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'));
+    const rel=[...P.parseFromString(rels,'application/xml').getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid);if(rel){const t=rel.getAttribute('Target').replace(/^\//,'');sheet=t.startsWith('xl/')?t:'xl/'+t}}
+  const sx=await get(sheet);if(!sx)throw new Error('sheet');const doc=P.parseFromString(sx,'application/xml');const rows=[];
+  const col=ref=>{const m=/^([A-Z]+)/.exec(ref||'');if(!m)return -1;let n=0;for(const ch of m[1])n=n*26+ch.charCodeAt(0)-64;return n-1};
+  [...doc.getElementsByTagName('row')].forEach(r=>{const out=[];let k=0;[...r.getElementsByTagName('c')].forEach(c=>{const ci=col(c.getAttribute('r'));const idx=ci>=0?ci:k;k=idx+1;const t=c.getAttribute('t');const v=c.getElementsByTagName('v')[0];let val='';
+    if(t==='s'&&v)val=ss[+v.textContent]??'';else if(t==='inlineStr')val=[...c.getElementsByTagName('t')].map(x=>x.textContent).join('');else if(v){const tx=v.textContent;val=t==='str'||t==='b'||isNaN(+tx)?tx:+tx}
+    out[idx]=val});for(let q=0;q<out.length;q++)if(out[q]===undefined)out[q]='';rows.push(out)});return rows}
 // ---- bulk numbers import
 function normPhone(v){let d=String(v||'').replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/\D/g,'');
   if(d.startsWith('0020'))d=d.slice(4);else if(d.startsWith('20')&&d.length===12)d=d.slice(2);if(d.length===10&&d.startsWith('1'))d='0'+d;return /^01[0125]\d{8}$/.test(d)?d:''}
@@ -595,7 +650,13 @@ function sheetImport(){const sh=S.sheet;const list=sh.list||[];
 function custVaccines(cid){const out=[];cyclesOf(cid).forEach(c=>(c.vaccines||[]).forEach(v=>out.push({c,v})));return out.sort((a,b)=>(a.v.date||'').localeCompare(b.v.date||''))}
 function vacNameList(){return [...new Set([...(S.settings.template||[]).map(x=>x.name),...[...S.cycles.values()].flatMap(c=>(c.vaccines||[]).map(v=>v.name))].filter(Boolean))]}
 function schedCard(cu){const id=esc(cu.id);const up=custVaccines(cu.id).filter(x=>!x.v.done);const hasTpl=(S.settings.template||[]).some(r=>r.name&&num(r.day)>0);
+  const bk=cu.bookingDate;const bkDone=['booked','buyer'].includes(cu.stage||'lead');
   return `<div class="card sched"><h3>📅 المواعيد</h3>
+    <div class="sub">🐣 ميعاد الحجز اللي وعد بيه</div>
+    <div class="meta">${bk?'وعد يحجز: <b style="color:var(--ink)">'+esc(fmtDate(bk))+'</b> ('+esc(rel(bk))+')'+'':'لسه محددش ميعاد. لو وعدك يحجز، حط الميعاد هنا وهيظهرلك في «النهاردة» عشان تفكّره.'}</div>
+    ${bk&&cu.stage!=='lost'?`<div class="quick"><span class="meta">الحالة:</span><button class="chip" aria-pressed="${!bkDone}" data-act="bookUnconfirm" data-id="${id}">⏳ لسه محتاج تأكيد</button><button class="chip" aria-pressed="${bkDone}" data-act="bookDone" data-id="${id}">✅ حجز مؤكد</button></div><div class="meta">${bkDone?'الحجز مؤكد، مفيش تذكيرات.':'هفكّرك قبلها بـ ٣ أيام، وبعدين كل يوم (قبلها بيومين، وبيوم، ويوم الميعاد) لحد ما يأكّد.'}</div>`:''}
+    <div class="quick"><button class="btn sm" data-act="bookIn" data-id="${id}" data-n="7">الأسبوع الجاي</button><button class="btn sm" data-act="bookIn" data-id="${id}" data-n="month">أول الشهر الجاي</button>${bk?`<button class="btn ghost sm" data-act="bookClear" data-id="${id}">إلغاء</button>`:''}</div>
+    <label class="f">أو اختار اليوم بالظبط<input type="date" id="bk-${id}" data-act-change="bookDate" data-id="${id}" value="${esc(bk||'')}"></label>
     <div class="sub">📞 جدولة مكالمة</div>
     <div class="meta">${cu.nextFollowUp?'المكالمة الجاية: <b style="color:var(--ink)">'+esc(fmtDate(cu.nextFollowUp))+'</b> ('+esc(rel(cu.nextFollowUp))+')':'مفيش مكالمة متجدولة.'}</div>
     <div class="quick"><button class="btn sm" data-act="callIn" data-id="${id}" data-n="1">بكرة</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="3">بعد ٣ أيام</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="7">بعد أسبوع</button><button class="btn sm" data-act="callIn" data-id="${id}" data-n="14">بعد أسبوعين</button>${cu.nextFollowUp?`<button class="btn ghost sm" data-act="callClear" data-id="${id}">إلغاء</button>`:''}</div>
@@ -669,6 +730,7 @@ function sheetCustForm(){const cu=S.sheet.id?S.customers.get(S.sheet.id):null;co
       <label class="f">عاوز إيه<input name="want" id="cf-want" value="${esc(v.want||'')}" placeholder="مثال: 500 ساسو أول الشهر"></label>
       <label class="f">المرحلة<select name="stage" id="cf-stage">${STAGES.map(s=>`<option value="${s.k}" ${v.stage===s.k?'selected':''}>${s.t}</option>`).join('')}</select></label>
       <label class="f">المتابعة الجاية<input name="nextFollowUp" id="cf-next" type="date" value="${esc(v.nextFollowUp||'')}"></label>
+      <label class="f">🐣 ميعاد الحجز اللي وعد بيه<input name="bookingDate" id="cf-book" type="date" value="${esc(v.bookingDate||'')}"></label>
       ${S.campaigns.size?`<label class="f">جه من حملة<select name="campaignId" id="cf-camp"><option value="">—</option>${[...S.campaigns.values()].map(c=>`<option value="${esc(c.id)}" ${v.campaignId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>`:''}
     </div>
     <label class="f">ملاحظات<textarea name="notes" id="cf-notes">${esc(v.notes||'')}</textarea></label>
@@ -716,6 +778,11 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
     closeSheet();S.tab='customers';renderMain();toast('اتضاف '+n+' عميل')}
   else if(a==='cycleSold'){const c=S.cycles.get(d.id);if(c){updCycle(d.id,x=>{x.soldOn=today()});const cu=S.customers.get(c.customerId);if(cu&&cu.stage!=='lost'){const nx=addDays(today(),10);save('customers',cu.id,{...cu,nextFollowUp:nx,followNote:'الدورة الجاية'});toast('اتسجّل البيع، واتجدولت مكالمة للدورة الجاية '+rel(nx))}else toast('اتسجّل البيع')}}
   else if(a==='callIn'){const cu=S.customers.get(d.id);if(cu){const nx=addDays(today(),+d.n);save('customers',cu.id,{...cu,nextFollowUp:nx});toast('اتجدولت مكالمة '+rel(nx))}}
+  else if(a==='bookIn'){const cu=S.customers.get(d.id);if(cu)setBooking(cu,d.n==='month'?firstOfNextMonth():addDays(today(),+d.n))}
+  else if(a==='bookClear'){const cu=S.customers.get(d.id);if(cu)setBooking(cu,'')}
+  else if(a==='bookNudged'){const cu=S.customers.get(d.id);if(cu){save('customers',cu.id,{...cu,bookingNudge:d.ph,lastContact:today()});toast(d.ph==='pre3'||d.ph==='pre2'?'تمام. لو مأكّدش هفكّرك تاني بكرة':d.ph==='pre1'?'تمام. لو مأكّدش هفكّرك تاني يوم الميعاد':d.ph==='day'?'تمام. لو محجزش هيظهرلك تاني بكرة':'تمام. لو اتفقتوا على ميعاد جديد غيّره من صفحة العميل')}}
+  else if(a==='bookUnconfirm'){const cu=S.customers.get(d.id);if(cu&&cu.stage!=='promised'){save('customers',cu.id,{...cu,stage:'promised'});toast('رجع «محتاج تأكيد»، والتذكيرات هتشتغل')}}
+  else if(a==='bookDone'){const cu=S.customers.get(d.id);if(cu){save('customers',cu.id,{...cu,stage:'booked',lastContact:today()});toast('مبروك! الحجز اتأكّد ✅ ومش هيظهر في التذكيرات تاني')}}
   else if(a==='callClear'){const cu=S.customers.get(d.id);if(cu){save('customers',cu.id,{...cu,nextFollowUp:''});toast('اتلغت المكالمة')}}
   else if(a==='openCustomer')openSheet({type:'customer',id:d.id});
   else if(a==='close'){closeSheet()}
@@ -741,8 +808,9 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;if(S.sheet)closeSheet();renderMain();window.scrollTo(0,0)});
 document.addEventListener('change',e=>{const t=e.target;if(t.dataset.actChange==='nextFollow'){const cu=S.customers.get(t.dataset.id);if(cu)save('customers',cu.id,{...cu,nextFollowUp:t.value})}
+  else if(t.dataset.actChange==='bookDate'){const cu=S.customers.get(t.dataset.id);if(cu)setBooking(cu,t.value)}
   else if(t.dataset.actChange==='custCampaign'){const cu=S.customers.get(t.dataset.id);if(cu){save('customers',cu.id,{...cu,campaignId:t.value});toast('اتحفظ')}}
-  else if(t.id==='metaCsv'&&t.files[0]){t.files[0].text().then(importMetaCSV).catch(()=>toast('مقدرتش أقرا الملف'));t.value=''}
+  else if(t.id==='metaCsv'&&t.files[0]){readTableFile(t.files[0]).then(importMetaRows).catch(e=>toast(e&&e.message==='xls'?'الملف بصيغة Excel القديمة (.xls). صدّره CSV أو .xlsx':'مقدرتش أقرا الملف'));t.value=''}
   else if(t.id==='impFile'&&t.files[0]){t.files[0].text().then(tx=>{S.sheet.text=tx.length>20000?'':tx;buildImport(tx)}).catch(()=>toast('مقدرتش أقرا الملف'));t.value=''}});
 document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;S._qFocus=true;renderMain()}});
 document.addEventListener('focusout',e=>{if(e.target.id==='q')S._qFocus=false});
@@ -752,7 +820,8 @@ function readTpl(){const f=document.querySelector('form[data-form="tpl"]');if(!f
 document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();const fd=Object.fromEntries(new FormData(f));const k=f.dataset.form;
   if(k==='customer'){const name=(fd.name||'').trim();if(!name){toast('اكتب اسم العميل');return}
     const id=f.dataset.id||newId();const old=S.customers.get(id)||{createdAt:Date.now(),createdBy:S.me||null};
-    save('customers',id,{...old,name,phone:(fd.phone||'').trim(),area:(fd.area||'').trim(),source:fd.source||'',want:(fd.want||'').trim(),stage:fd.stage||'lead',nextFollowUp:fd.nextFollowUp||'',notes:fd.notes||'',campaignId:fd.campaignId!==undefined?fd.campaignId:(old.campaignId||''),lastContact:old.lastContact||today()});
+    const bd=fd.bookingDate||'';let stg=fd.stage||'lead';if(bd&&bd!==(old.bookingDate||'')&&(stg==='lead'||stg==='follow'))stg='promised';
+    save('customers',id,{...old,name,phone:(fd.phone||'').trim(),area:(fd.area||'').trim(),source:fd.source||'',want:(fd.want||'').trim(),stage:stg,bookingDate:bd,bookingNudge:bd===(old.bookingDate||'')?(old.bookingNudge||''):'',nextFollowUp:fd.nextFollowUp||'',notes:fd.notes||'',campaignId:fd.campaignId!==undefined?fd.campaignId:(old.campaignId||''),lastContact:old.lastContact||today()});
     openSheet({type:'customer',id});toast(f.dataset.id?'اتحفظ':'اتضاف العميل')}
   else if(k==='cycle'){const id=f.dataset.id||newId();const old=S.cycles.get(id)||{customerId:f.dataset.cid,createdAt:Date.now(),createdBy:S.me||null,vaccines:[],meds:[]};
     const n={...old,startDate:fd.startDate,chickType:(fd.chickType||'').trim(),chickCount:num(fd.chickCount),chickPrice:num(fd.chickPrice),paid:num(fd.paid),notes:fd.notes||'',sellDay:num(fd.sellDay)||null};
@@ -776,7 +845,7 @@ document.addEventListener('submit',e=>{const f=e.target;e.preventDefault();const
   else if(k==='myname'){const n=(fd.name||'').trim();if(!n)return;S.profiles[S.me]=n;(S.team||[]).forEach(t=>{if(t.id===S.me)t.name=n});renderMain();
     if(sb)sb.from('team').update({name:n}).eq('id',S.me).then(({error})=>toast(error?'مقدرتش أحفظ الاسم':'اتحفظ الاسم'))}
   else if(k==='shop'){save('settings','main',{...S.settings,shopName:(fd.shopName||'').trim()});toast('اتحفظ')}
-  else if(k==='remMsgs'){save('settings','main',{...S.settings,vacMsg:(fd.vacMsg||'').trim(),followMsg:(fd.followMsg||'').trim(),saleMsg:(fd.saleMsg||'').trim(),sellDay:num(fd.sellDay)||35});toast('اتحفظت القوالب')}
+  else if(k==='remMsgs'){save('settings','main',{...S.settings,vacMsg:(fd.vacMsg||'').trim(),followMsg:(fd.followMsg||'').trim(),saleMsg:(fd.saleMsg||'').trim(),sellDay:num(fd.sellDay)||35,bookPreMsg:(fd.bookPreMsg||'').trim(),bookConfirmMsg:(fd.bookConfirmMsg||'').trim(),bookDayMsg:(fd.bookDayMsg||'').trim(),bookLateMsg:(fd.bookLateMsg||'').trim()});toast('اتحفظت القوالب')}
   else if(k==='msgs'){const ms=readMsgs().map(m=>({title:(m.title||'').trim(),text:(m.text||'').trim()})).filter(m=>m.text);save('settings','main',{...S.settings,msgs:ms});toast('اتحفظت الرسايل')}
   else if(k==='tpl'){const tp=readTpl().filter(r=>r.name&&num(r.day)>0).map(r=>({day:num(r.day),name:r.name.trim()})).sort((a,b)=>a.day-b.day);save('settings','main',{...S.settings,template:tp});toast('اتحفظ القالب')}
 });
@@ -791,7 +860,7 @@ function loadDemo(){S.mode='demo';const t=today();
   const st=addDays(t,-6);
   S.cycles.set('y1',{id:'y1',customerId:'d1',startDate:st,chickType:'كتكوت تسمين أبيض',chickCount:500,chickPrice:32,paid:12000,
     vaccines:tplVaccines(st),meds:[{id:'m1',name:'مضاد حيوي',qty:'2',total:450,date:addDays(t,-4)},{id:'m2',name:'فيتامينات',qty:'1',total:180,date:addDays(t,-1)}]});
-  S.campaigns.set('c1',{id:'c1',name:'(مثال) إعلان كتاكيت نوفمبر',platform:'فيسبوك',startDate:addDays(t,-10),spend:1500,messages:120,extras:[{name:'تصميم',amount:200}]});S.customers.get('d1').campaignId='c1';S.customers.get('d2').campaignId='c1';S.customers.get('d2').stage='promised';
+  S.campaigns.set('c1',{id:'c1',name:'(مثال) إعلان كتاكيت نوفمبر',platform:'فيسبوك',startDate:addDays(t,-10),spend:1500,messages:120,extras:[{name:'تصميم',amount:200}]});S.customers.get('d1').campaignId='c1';S.customers.get('d2').campaignId='c1';S.customers.get('d2').stage='promised';S.customers.get('d2').bookingDate=addDays(t,2);
   renderAll()}
 
 // ---------- boot ----------

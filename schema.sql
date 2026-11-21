@@ -98,3 +98,7 @@ do $$ begin
   begin alter publication supabase_realtime add table public.cycles; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.settings; exception when duplicate_object then null; end;
 end $$;
+
+-- تذكير مواعيد الحجز (migration: customers_booking_reminders)
+alter table public.customers add column if not exists booking_date date;            -- الميعاد اللي العميل وعد يحجز فيه
+alter table public.customers add column if not exists booking_nudge text not null default '';  -- آخر تذكير اتبعت: '' / pre3 / pre2 / pre1 / day / late

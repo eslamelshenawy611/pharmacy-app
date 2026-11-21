@@ -14,3 +14,10 @@
 - المراحل: lead / follow / promised (وعد يحجز) / booked (حجز) / buyer / lost (مستبعد). المرحلة الكاملة في customers.pipeline، وcustomers.stage فيها الأربعة القدام بس عشان الـ check constraint.
 - customers: exclude_reason, follow_note, campaign_id. جدول campaigns (spend, messages, extras jsonb). cycles: sell_day, sold_on (وكمان logs مش مستخدم).
 - استيراد تقرير فيسبوك CSV من تبويب الحملات، واستيراد أرقام (لصق / VCF / CSV) من تبويب العملاء.
+
+## تحديث: تذكير مواعيد الحجز
+- customers.booking_date (الميعاد اللي وعد بيه) و customers.booking_nudge (آخر تذكير اتبعت: pre3 / pre2 / pre1 / day / late لو عدى لحد 7 أيام).
+- حالة الحجز = المرحلة: promised «وعد (محتاج تأكيد) ⏳» بيجيله تذكير قبلها بـ 3 و2 و1 ويوم الميعاد، booked «حجز مؤكد ✅» مفيش تذكيرات.
+- في «النهاردة» قسم «فكّرهم بالحجز» بزرار واتساب ورسالة جاهزة + «بعتّله» + «حجز ✓». بيختفي لما المرحلة تبقى حجز/اشترى/مستبعد.
+- الرسايل قابلة للتعديل من الإعدادات (settings.data.bookPreMsg / bookConfirmMsg / bookDayMsg / bookLateMsg)، و{الفاضل} = «بعد يومين» أو «بكرة». {الميعاد} = تاريخ الحجز.
+- تحديد ميعاد لعميل في مرحلة «محتمل» أو «محتاج متابعة» بيحوّله لـ «وعد يحجز» تلقائي.
